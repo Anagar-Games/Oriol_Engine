@@ -1,62 +1,82 @@
 #include "Options/Options.hpp"
-#include "ProjectCreator/ProjectCreator.hpp"
 #include "ProjectCreator/ConsoleColor.hpp"
+#include "ProjectCreator/ProjectCreator.hpp"
+#include "BuildSys/BuildSys.hpp"
+
 #include <iostream>
 
-int main(int argc, char* argv[]) {
-	setlocale(LC_ALL, "RU-ru");
-    CUtils::Options options(argc, argv);
-    options.AddOption("-c", "Создать новый проект");
-    options.AddOption("-h", "Показать справку");
+int main(int argc_a, char* argv_a[])
+{
+    Oriol_Dev::Options options_(argc_a, argv_a);
+    options_.AddOption("-c", "Create New Project");
+    options_.AddOption("-h", "Auxiliary Help");
+    options_.AddOption("-b", "Build Project");
 
-    if (argc == 1 || options.IsOptionSet("-h")) {
-        ConsoleColor::setBlue();
-        std::cout << "OL Project Manager - инструмент для создания проектов\n\n";
-        ConsoleColor::reset();
-        options.PrintHelp();
-        return 0;
-    }
-
-    if (options.IsOptionSet("-c")) {
-        std::string projectName = options.GetOptionValue("-c");
-        if (projectName.empty()) {
-            ConsoleColor::setRed();
-            std::cerr << "Ошибка: не указано имя проекта\n";
-            ConsoleColor::reset();
-            return 1;
-        }
-
-        ProjectCreator creator(projectName);
+    if (argc_a == 1 || options_.IsOptionSet("-h"))
+    {
+        options_.PrintHelp();
         
-        ConsoleColor::setYellow();
-        std::cout << "Создание проекта '" << projectName << "'...\n";
-        ConsoleColor::reset();
+        return 0;
+    }
 
-        if (!creator.createProjectStructure()) {
+    if (options_.IsOptionSet("-c"))
+    {
+        std::string project_name_ = options_.GetOptionValue("-c");
+        if (project_name_.empty())
+        {
+            Oriol_Dev::ConsoleColor::SetRed();
+            std::cerr << "Specify the project name!\n";
+            Oriol_Dev::ConsoleColor::Reset();
+            
             return 1;
         }
 
-        int licenseChoice = creator.selectLicenseInteractively();
+        Oriol_Dev::ProjectCreator creator_(project_name_);
 
-        if (!creator.createProjectFiles(licenseChoice)) {
-            ConsoleColor::setRed();
-            std::cerr << "Ошибка при создании файлов проекта!\n";
-            ConsoleColor::reset();
+        if (!creator_.CreateProjectStructure())
+        {
             return 1;
         }
 
-        ConsoleColor::setGreen();
-        std::cout << "\nПроект '" << projectName << "' успешно создан!\n";
-        ConsoleColor::reset();
+        int license_choice_ = creator_.SelectLicenseInteractively();
 
-        std::cout << "\nСтруктура проекта:\n";
-        creator.showProjectStructure();
+        if (!creator_.CreateProjectFiles(license_choice_))
+        {
+            Oriol_Dev::ConsoleColor::SetRed();
+            std::cerr << "Error when creating project files!\n";
+            Oriol_Dev::ConsoleColor::Reset();
+            
+            return 1;
+        }
+
+        Oriol_Dev::ConsoleColor::SetGreen();
+        std::cout << "\nThe project '" << project_name_ << "' was successfully created!\n";
+        std::cout << "\nHappy GameDev!";
+        Oriol_Dev::ConsoleColor::Reset();
 
         return 0;
     }
 
-    ConsoleColor::setRed();
-    std::cerr << "Неизвестная команда. Используйте -h для справки.\n";
-    ConsoleColor::reset();
+    if (options_.IsOptionSet("-b"))
+    {
+        if (Oriol_Dev::BuildSys::StartBuild())
+        {
+            Oriol_Dev::ConsoleColor::SetGreen();
+            std::cout << "\nBuild Successful!";
+            Oriol_Dev::ConsoleColor::Reset();    
+        }
+        else
+        {
+            Oriol_Dev::ConsoleColor::SetRed();
+            std::cerr << "\nError when Build project!";
+            Oriol_Dev::ConsoleColor::Reset();
+        }
+
+        return 0;
+    }
+
+    Oriol_Dev::ConsoleColor::SetRed();
+    std::cerr << "Unknown command, run -h for help.\n";
+    Oriol_Dev::ConsoleColor::Reset();
     return 1;
 }

@@ -8,7 +8,7 @@
 
 namespace Oriol_Dev
 {
-    void ConsoleColor::setRed()
+    void ConsoleColor::SetRed()
     {
 #ifdef _WIN32
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
@@ -17,7 +17,7 @@ namespace Oriol_Dev
 #endif
     }
 
-    void ConsoleColor::setGreen()
+    void ConsoleColor::SetGreen()
     {
 #ifdef _WIN32
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10);
@@ -26,7 +26,7 @@ namespace Oriol_Dev
 #endif
     }
 
-    void ConsoleColor::setYellow()
+    void ConsoleColor::SetYellow()
     {
 #ifdef _WIN32
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 14);
@@ -35,7 +35,7 @@ namespace Oriol_Dev
 #endif
     }
 
-    void ConsoleColor::setBlue()
+    void ConsoleColor::SetBlue()
     {
 #ifdef _WIN32
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 9);
@@ -44,7 +44,7 @@ namespace Oriol_Dev
 #endif
     }
 
-    void ConsoleColor::reset()
+    void ConsoleColor::Reset()
     {
 #ifdef _WIN32
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);

@@ -10,7 +10,7 @@ namespace Oriol_Dev
         : project_name_(project_name_a),
           project_dir_(fs::current_path() / project_name_a) {}
 
-    bool ProjectCreator::createDirectories(const fs::path& path_a)
+    bool ProjectCreator::_CreateDirectories(const fs::path& path_a)
     {
         try
         {
@@ -27,8 +27,8 @@ namespace Oriol_Dev
         }
     }
 
-    bool ProjectCreator::CreateFile(const fs::path& path_a,
-                                    const std::string& content_a)
+    bool ProjectCreator::_CreateFile(const fs::path& path_a,
+                                     const std::string& content_a)
     {
         try
         {
@@ -44,7 +44,7 @@ namespace Oriol_Dev
         {
             ConsoleColor::SetRed();
             std::cerr << "Error when creating a file: " 
-                      << e.what() << std::endl;
+                      << e_.what() << std::endl;
             
             ConsoleColor::Reset();
             return false;
@@ -158,47 +158,69 @@ namespace Oriol_Dev
     {
         fs::path main_cpp_     = project_dir_ / "Sources" / "Main.cpp";
         fs::path license_file_ = project_dir_ / "LICENSE";
-        fs::path project_file_ = project_dir_ / (project_name_ + ".ol");
+        fs::path project_file_ = project_dir_ / "Oriol.ol";
         fs::path readme_file_  = project_dir_ / "Readme.md";
 
         std::string main_content_ = 
-        "#include <iostream>\n\n"
-        "int main() {\n"
-        "    std::cout << \"Hello from " + projectName + "!\\n\";\n"
-        "    return 0;\n"
-        "}\n";
+R"(#include <API/API.hpp>
+#include <API/Aid/Debug/LogMessage.hpp>
 
-        std::string projectFileContent = 
-        "{\n"
-        "    \"name\": \"" + projectName + "\",\n"
-        "    \"version\": \"1.0.0\",\n"
-        "    \"dependencies\": []\n"
-        "}\n";
+using namespace OL;
 
-        std::string readmeContent = 
-        "# " + projectName + "\n\n"
-        "## Описание проекта\n"
-        "Этот проект был создан с помощью OL Project Manager\n\n"
-        "## Сборка\n"
-        "Используйте стандартные инструменты для сборки C++ проектов\n";
+OLMain()
+{
+    LogMessage::Print(TM::INFO, "Hello, Oriol Engine!");
+    DOPE 0;
+}
+)";
 
-        std::string licenseText = getLicenseText(licenseChoice);
+        std::string project_file_content_ = 
+R"(@Info
+{
+    name: )" + project_name_ + R"(
+    description: "Game on Oriol Engine"
+    version: 1.0.0
+    engine_v: 0.0.1
+}
 
-        return createFile(mainCpp, mainContent)
-               && createFile(licenseFile, licenseText)
-               && createFile(projectFile, projectFileContent)
-               && createFile(readmeFile, readmeContent);
+@Paths
+{
+    assets: "Assets"
+    build: "Build"
+    sources: "Sources"
+})";
+
+        std::string readme_content_ = 
+R"(# )" + project_name_ + R"(
+
+## Description
+Oriol Engine Project
+
+## Start
+- ``cd Build``
+- ``ol -s .``
+
+## Build
+- ``cd Build``
+- ``ol -b``)";
+
+        std::string license_text_ = _GetLicenseText(license_choice_a);
+
+        return _CreateFile(main_cpp_, main_content_)
+               && _CreateFile(license_file_, license_text_)
+               && _CreateFile(project_file_, project_file_content_)
+               && _CreateFile(readme_file_, readme_content_);
     }
 
-    void ProjectCreator::showProjectStructure() const
+    void ProjectCreator::ShowProjectStructure() const
     {
-        std::cout << projectName << "/\n";
+        std::cout << project_name_ << "/\n";
         std::cout << "├── Assets/\n";
         std::cout << "├── Build/\n";
         std::cout << "├── Sources/\n";
         std::cout << "│   └── Main.cpp\n";
         std::cout << "├── LICENSE\n";
-        std::cout << "├── " << projectName << ".ol\n";
+        std::cout << "├── " << project_name_ << ".ol\n";
         std::cout << "└── Readme.md\n";
     }
 } // namespace Oriol_Dev

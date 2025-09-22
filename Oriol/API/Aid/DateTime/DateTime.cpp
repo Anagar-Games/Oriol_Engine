@@ -1,13 +1,13 @@
 #include "DateTime.hpp"
 
-namespace CUtils
+namespace OL
 {
     DateTime::DateTime()
     {
-        current_time_ = std::time(nullptr);
+        current_time_ = time(nullptr);
     }
 
-    DateTime::DateTime(time_t time_a) : current_time_(time_a)
+    DateTime::DateTime(std::time_t time_a) : current_time_(time_a)
     {}
 
     std::string DateTime::GetCurrentDateTime() const
@@ -25,24 +25,24 @@ namespace CUtils
         return Format("%H:%M:%S");
     }
 
-    void DateTime::SetTime(time_t time_a)
+    void DateTime::SetTime(std::time_t time_a)
     {
         current_time_ = time_a;
     }
 
-    time_t DateTime::GetTime() const
+    std::time_t DateTime::GetTime() const
     {
         return current_time_;
     }
 
     std::string DateTime::Format(const std::string& format_a) const
     {
-        std::tm time_info_ = {};
+        tm time_info_ = {};
 
 #if defined(_WIN32) || defined(_WIN64)
         localtime_s(&time_info_, &current_time_);
 #else
-        localtime_r(&current_time_, &time_info_); // Linux/macOS
+        localtime_r(&current_time_, &time_info_);
 #endif
 
         char buffer_[80];
@@ -79,4 +79,4 @@ namespace CUtils
     {
         return current_time_ >= other_a.current_time_;
     }
-} // namespace CUtils
+} // namespace OL

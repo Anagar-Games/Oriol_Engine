@@ -1,6 +1,6 @@
 #include "Filesystem.hpp"
 
-namespace CUtils
+namespace OL
 {
     bool Filesystem::CreateDirectory(const std::string& path_a)
     {
@@ -19,8 +19,7 @@ namespace CUtils
         {
             std::filesystem::rename(old_path_a, new_path_a);
             return true;
-        } 
-        catch (const std::filesystem::filesystem_error& e_)
+        } catch (const std::filesystem::filesystem_error& e_)
         {
             return false;
         }
@@ -82,15 +81,13 @@ namespace CUtils
             if (recursive_a && IsDirectory(from_a))
             {
                 _CopyDirectoryRecursive(from_a, to_a);
-            } 
-            else
+            } else
             {
                 std::filesystem::copy(from_a, to_a);
             }
 
             return true;
-        } 
-        catch (const std::filesystem::filesystem_error& e_)
+        } catch (const std::filesystem::filesystem_error& e_)
         {
             return false;
         }
@@ -108,11 +105,10 @@ namespace CUtils
             if (std::filesystem::is_directory(new_from_))
             {
                 _CopyDirectoryRecursive(new_from_, new_to_);
-            } 
-            else
+            } else
             {
                 std::filesystem::copy(new_from_, new_to_);
             }
         }
     }
-} // namespace CUtils
+} // namespace OL

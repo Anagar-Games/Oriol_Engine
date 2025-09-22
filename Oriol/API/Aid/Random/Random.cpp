@@ -1,12 +1,12 @@
 #include "Random.hpp"
 
-namespace CUtils
+namespace OL
 {
     Random::Random()
     {
         unsigned seed_ =
                 std::chrono::system_clock::now().time_since_epoch().count();
-        
+
         generator_.seed(seed_);
     }
 
@@ -45,4 +45,4 @@ namespace CUtils
         std::poisson_distribution<int> distribution_(mean_a);
         return distribution_(generator_);
     }
-} // namespace CUtils
+} // namespace OL

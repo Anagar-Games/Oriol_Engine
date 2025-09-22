@@ -1,6 +1,6 @@
 #include "StringHelper.hpp"
 
-namespace CUtils
+namespace OL
 {
     StringHelper::StringHelper(const std::string& str_a) : data_(str_a)
     {}
@@ -11,14 +11,20 @@ namespace CUtils
     std::string StringHelper::ToLowerCase() const
     {
         std::string result_ = data_;
-        std::transform(result_.begin(), result_.end(), result_.begin(), ::tolower);
+        std::transform(result_.begin(),
+                       result_.end(),
+                       result_.begin(),
+                       ::tolower);
         return result_;
     }
 
     std::string StringHelper::ToUpperCase() const
     {
         std::string result_ = data_;
-        std::transform(result_.begin(), result_.end(), result_.begin(), ::toupper);
+        std::transform(result_.begin(),
+                       result_.end(),
+                       result_.begin(),
+                       ::toupper);
         return result_;
     }
 
@@ -28,17 +34,17 @@ namespace CUtils
         result_.erase(result_.begin(),
                       std::find_if(result_.begin(),
                                    result_.end(),
-                                   [](unsigned char ch_) 
-                                   {
+                                   [](unsigned char ch_) {
                                        return !std::isspace(ch_);
                                    }));
 
         result_.erase(std::find_if(result_.rbegin(),
                                    result_.rend(),
-                                   [](unsigned char ch_) 
-                                   {
+                                   [](unsigned char ch_) {
                                        return !std::isspace(ch_);
-                                   }).base(), result_.end());
+                                   })
+                              .base(),
+                      result_.end());
 
         return result_;
     }
@@ -56,8 +62,7 @@ namespace CUtils
                     tokens_.push_back(token_);
                     token_.clear();
                 }
-            }
-            else
+            } else
             {
                 token_ += ch_;
             }
@@ -85,10 +90,11 @@ namespace CUtils
     {
         if (suffix_a.length() > data_.length())
             return false;
-        
+
         return data_.compare(data_.length() - suffix_a.length(),
                              suffix_a.length(),
-                             suffix_a) == 0;
+                             suffix_a)
+               == 0;
     }
 
     std::string StringHelper::Replace(const std::string& old_str_a,
@@ -137,8 +143,7 @@ namespace CUtils
             if (std::isdigit(ch_))
             {
                 result_ += ch_;
-            }
-            else if (ch_ == '.' && !found_decimal_)
+            } else if (ch_ == '.' && !found_decimal_)
             {
                 result_ += ch_;
                 found_decimal_ = true;
@@ -197,12 +202,10 @@ namespace CUtils
             }
 
             return result_;
-        }
-        catch (const std::invalid_argument&)
+        } catch (const std::invalid_argument&)
         {
             return std::nullopt;
-        }
-        catch (const std::out_of_range&)
+        } catch (const std::out_of_range&)
         {
             return std::nullopt;
         }
@@ -220,12 +223,10 @@ namespace CUtils
             }
 
             return result_;
-        }
-        catch (const std::invalid_argument&)
+        } catch (const std::invalid_argument&)
         {
             return std::nullopt;
-        }
-        catch (const std::out_of_range&)
+        } catch (const std::out_of_range&)
         {
             return std::nullopt;
         }
@@ -238,14 +239,12 @@ namespace CUtils
         if (lower_str_ == "true" || lower_str_ == "1")
         {
             return true;
-        } 
-        else if (lower_str_ == "false" || lower_str_ == "0")
+        } else if (lower_str_ == "false" || lower_str_ == "0")
         {
             return false;
-        } 
-        else
+        } else
         {
             return std::nullopt;
         }
     }
-} // namespace CUtils
+} // namespace OL

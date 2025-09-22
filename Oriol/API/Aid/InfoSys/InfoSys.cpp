@@ -1,12 +1,12 @@
-#include "SystemConfiguration.hpp"
+#include "InfoSys.hpp"
 
-namespace CUtils
+namespace OL
 {
 #if defined(_WIN32) || defined(_WIN64)
     typedef LONG NTSTATUS;
     typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
 
-    std::string SystemConfiguration::GetOSVersion()
+    std::string InfoSys::GetOSVersion()
     {
         HMODULE h_mod_ = LoadLibraryW(L"ntdll.dll");
         if (h_mod_)
@@ -25,7 +25,7 @@ namespace CUtils
                     os_version_ << osvi_.dwMajorVersion << "."
                                 << osvi_.dwMinorVersion << " (Build "
                                 << osvi_.dwBuildNumber << ")";
-                 
+
                     FreeLibrary(h_mod_);
                     return os_version_.str();
                 }
@@ -36,13 +36,13 @@ namespace CUtils
         return "Unknown Version";
     }
 #else
-    std::string SystemConfiguration::GetOSVersion()
+    std::string InfoSys::GetOSVersion()
     {
         return "Unknown";
     }
 #endif
 
-    std::string SystemConfiguration::GetOSName()
+    std::string InfoSys::GetOSName()
     {
 #if defined(_WIN32) || defined(_WIN64)
         return "Windows";
@@ -55,13 +55,12 @@ namespace CUtils
 #endif
     }
 
-    std::string SystemConfiguration::GetCPUInfo()
+    std::string InfoSys::GetCPUInfo()
     {
 #if defined(_WIN32) || defined(_WIN64)
         SYSTEM_INFO sys_info_;
         GetSystemInfo(&sys_info_);
         std::ostringstream cpu_info_;
-        cpu_info_ << "CPU Architecture: ";
 
         switch (sys_info_.wProcessorArchitecture)
         {
@@ -98,16 +97,15 @@ namespace CUtils
 #endif
     }
 
-    std::string SystemConfiguration::GetMemoryInfo()
+    std::string InfoSys::GetMemoryInfo()
     {
 #if defined(_WIN32) || defined(_WIN64)
         MEMORYSTATUSEX statex_;
         statex_.dwLength = sizeof(statex_);
         GlobalMemoryStatusEx(&statex_);
         std::ostringstream mem_info_;
-        mem_info_ << "Total Physical Memory: "
-                  << (statex_.ullTotalPhys / (1024 * 1024)) << " MB";
-        
+        mem_info_ << (statex_.ullTotalPhys / (1024 * 1024)) << " MB";
+
         return mem_info_.str();
 
 #elif __APPLE__
@@ -128,7 +126,7 @@ namespace CUtils
 #endif
     }
 
-    std::string SystemConfiguration::GetDiskInfo()
+    std::string InfoSys::GetDiskInfo()
     {
 #if defined(_WIN32) || defined(_WIN64)
         ULARGE_INTEGER free_bytes_available_;
@@ -137,12 +135,11 @@ namespace CUtils
                             &free_bytes_available_,
                             &total_number_of_bytes_,
                             NULL);
-        
+
         std::ostringstream disk_info_;
-        disk_info_ << "Total Disk Space: "
-                   << (total_number_of_bytes_.QuadPart / (1024 * 1024 * 1024))
+        disk_info_  << (total_number_of_bytes_.QuadPart / (1024 * 1024 * 1024))
                    << " GB";
-        
+
         return disk_info_.str();
 
 #elif __APPLE__
@@ -154,13 +151,13 @@ namespace CUtils
     }
 
 #if defined(_WIN32) || defined(_WIN64)
-    std::string SystemConfiguration::_ExecCommand(const std::string& command_a)
+    std::string InfoSys::_ExecCommand(const std::string& command_a)
     {
         return "Command execution not implemented on Windows.";
     }
 
 #else
-    std::string SystemConfiguration::_ExecCommand(const char* command_a)
+    std::string InfoSys::_ExecCommand(const char* command_a)
     {
         std::array<char, 128> buffer_;
         std::string result_;
@@ -179,4 +176,4 @@ namespace CUtils
         return result_;
     }
 #endif
-} // namespace CUtils
+} // namespace OL

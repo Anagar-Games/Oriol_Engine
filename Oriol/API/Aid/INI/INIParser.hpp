@@ -1,34 +1,16 @@
-/*
-The MIT License (MIT)
-Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software
+#ifndef OL_INIPARSER_HPP
+#define OL_INIPARSER_HPP
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-#ifndef CUTILS_INIPARSER_HPP
-#define CUTILS_INIPARSER_HPP
-
-#include <string>
-#include <vector>
-#include <map>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <string>
+#include <vector>
 
-namespace CUtils
+namespace OL
 {
     class INIParser
     {
@@ -39,14 +21,14 @@ namespace CUtils
 
         std::string GetValue(const std::string& section_a,
                              const std::string& key_a) const;
-        
+
         void SetValue(const std::string& section_a,
                       const std::string& key_a,
                       const std::string& value_a);
-        
+
         std::vector<std::string> GetSections() const;
         std::map<std::string, std::string> GetKeys(
-                      const std::string& section_a) const;
+                const std::string& section_a) const;
 
     private:
         void _Trim(std::string& str_a) const;
@@ -55,5 +37,5 @@ namespace CUtils
         std::string filename_;
         std::map<std::string, std::map<std::string, std::string>> data_;
     };
-} // namespace CUtils
+} // namespace OL
 #endif

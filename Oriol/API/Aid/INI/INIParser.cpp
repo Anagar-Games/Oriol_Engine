@@ -1,6 +1,6 @@
 #include "INIParser.hpp"
 
-namespace CUtils
+namespace OL
 {
     INIParser::INIParser(const std::string& filename_a) : filename_(filename_a)
     {}
@@ -29,12 +29,11 @@ namespace CUtils
                     current_section_ = line_.substr(1, end_ - 1);
                     _Trim(current_section_);
                 }
-            }
-            else
+            } else
             {
                 size_t equal_sign_ = line_.find('=');
-                if (equal_sign_ != std::string::npos && 
-                    !current_section_.empty())
+                if (equal_sign_ != std::string::npos
+                    && !current_section_.empty())
                 {
                     std::string key_ = line_.substr(0, equal_sign_);
                     std::string value_ = line_.substr(equal_sign_ + 1);
@@ -103,7 +102,7 @@ namespace CUtils
     }
 
     std::map<std::string, std::string> INIParser::GetKeys(
-                             const std::string& section_a) const
+            const std::string& section_a) const
     {
         auto sec_it_ = data_.find(section_a);
         if (sec_it_ != data_.end())
@@ -117,9 +116,9 @@ namespace CUtils
     void INIParser::_Trim(std::string& str_a) const
     {
         size_t first_ = str_a.find_first_not_of(' ');
-        size_t last_  = str_a.find_last_not_of(' ');
+        size_t last_ = str_a.find_last_not_of(' ');
         str_a = (first_ == std::string::npos)
-                 ? ""
-                 : str_a.substr(first_, last_ - first_ + 1);
+                        ? ""
+                        : str_a.substr(first_, last_ - first_ + 1);
     }
-} // namespace CUtils
+} // namespace OL

@@ -1,6 +1,6 @@
 #include "Timer.hpp"
 
-namespace CUtils
+namespace OL
 {
     Timer::Timer()
     {
@@ -13,14 +13,13 @@ namespace CUtils
         if (is_running_)
         {
             auto elapsed_ = std::chrono::duration<double, std::milli>(
-                            std::chrono::steady_clock::now() - start_);
+                    std::chrono::steady_clock::now() - start_);
 
             return elapsed_.count();
-        } 
-        else
+        } else
         {
             auto elapsed_ = std::chrono::duration<double, std::milli>(stop_
-                                                                    - start_);
+                                                                      - start_);
             return elapsed_.count();
         }
     }
@@ -35,10 +34,10 @@ namespace CUtils
     {
         if (!is_running_)
             return false;
-        
+
         stop_ = std::chrono::steady_clock::now();
         is_running_ = false;
-        
+
         return true;
     }
 
@@ -46,10 +45,10 @@ namespace CUtils
     {
         if (is_running_)
             return false;
-        
+
         start_ = std::chrono::steady_clock::now();
         is_running_ = true;
-        
+
         return true;
     }
-} // namespace CUtils
+} // namespace OL

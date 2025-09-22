@@ -5,8 +5,8 @@
 ***Oriol_Engine*** - is a framework for low-level game development in C/C++.
 
 ## Documentations
-1. [Oriol/API/Readme.md](Oriol_API) 
-2. [Oriol/Oriol_Dev/Readme.md](Oriol_Dev) 
+1. [Oriol_API](Oriol/API/Readme.md) 
+2. [Oriol_Dev](Oriol/Oriol_Dev/Readme.md) 
 
 ## Automatic Build
 There are three build scripts in the Scripts folder. Run the one that's appropriate for your OS.

@@ -1,58 +1,55 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_COMPILER_HPP
+#define OL_COMPILER_HPP
+
 #include "HTG.hpp"
 
 #include <array>
 #include <chrono>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class Compiler
     {
-        namespace ShaderPack
+    public:
+        using Time = std::chrono::system_clock;
+        using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
+
+        struct StageTimePoints
         {
-            class Compiler
-            {
-            public:
-                using TAze = std::chrono::system_clock;
-                using TAzePoint =
-                        std::chrono::time_point<std::chrono::system_clock>;
+            TimePoint preprocessor_;
+            TimePoint parser_;
+            TimePoint analyzer_;
+            TimePoint optimizer_;
+            TimePoint generation_;
+            TimePoint reflection_;
+        };
 
-                struct StageTAzePoints
-                {
-                    TAzePoint preprocessor_;
-                    TAzePoint parser_;
-                    TAzePoint analyzer_;
-                    TAzePoint optimizer_;
-                    TAzePoint generation_;
-                    TAzePoint reflection_;
-                };
+        Compiler(Log* log_a = nullptr);
 
-                Compiler(Log* log_a = nullptr);
+        bool CompileShader(
+                const ShaderInput& input_desc_a,
+                const ShaderOutput& output_desc_a,
+                Reflection::ReflectionData* reflection_data_a = nullptr,
+                StageTimePoints* stage_time_points_a = nullptr);
 
-                bool CompileShader(
-                        const ShaderInput& input_desc_a,
-                        const ShaderOutput& output_desc_a,
-                        Reflection::ReflectionData* reflection_data_a = nullptr,
-                        StageTAzePoints* stage_tAze_points_a = nullptr);
+    private:
+        bool ReturnWithError(const std::string& msg_a);
+        void Warning(const std::string& msg_a);
 
-            private:
-                bool ReturnWithError(const std::string& msg_a);
-                void Warning(const std::string& msg_a);
+        void ValidateArguments(const ShaderInput& input_desc_a,
+                               const ShaderOutput& output_desc_a);
 
-                void ValidateArguments(const ShaderInput& input_desc_a,
-                                       const ShaderOutput& output_desc_a);
+        bool CompileShaderPrimary(
+                const ShaderInput& input_desc_a,
+                const ShaderOutput& output_desc_a,
+                Reflection::ReflectionData* reflection_data_a);
 
-                bool CompileShaderPrAzary(
-                        const ShaderInput& input_desc_a,
-                        const ShaderOutput& output_desc_a,
-                        Reflection::ReflectionData* reflection_data_a);
-
-            private:
-                Log* log_ = nullptr;
-                StageTAzePoints time_points_;
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    private:
+        Log* log_ = nullptr;
+        StageTimePoints time_points_;
+    };
+} // namespace OL
+#endif

@@ -1,6 +1,9 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_SCANNER_HPP
+#define OL_SCANNER_HPP
+
 #include "../AST/SourceArea.hpp"
 #include "../AST/Token.hpp"
 #include "../AST/TokenString.hpp"
@@ -11,142 +14,138 @@
 #include <functional>
 #include <string>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class Scanner
     {
-        namespace ShaderPack
+    public:
+        Scanner(Log* log_a = nullptr);
+        virtual ~Scanner() = default;
+
+        bool ScanSource(const SourceCodePtr& source_a);
+
+        void PushTokenString(const TokenPtrString& token_string_a);
+        void PopTokenString();
+
+        TokenPtrString::ConstIterator TopTokenStringIterator() const;
+
+        virtual TokenPtr Next() = 0;
+
+        TokenPtr ActiveToken() const;
+        TokenPtr PreviousToken() const;
+
+        inline const SourcePosition& Pos() const
         {
-            class Scanner
-            {
-            public:
-                Scanner(Log* log_a = nullptr);
-                virtual ~Scanner() = default;
+            return next_start_pos_;
+        }
 
-                bool ScanSource(const SourceCodePtr& source_a);
+        inline SourceCode* Source() const
+        {
+            return source_.get();
+        }
 
-                void PushTokenString(const TokenPtrString& token_string_a);
-                void PopTokenString();
+        inline const SourceCodePtr& GetSharedSource() const
+        {
+            return source_;
+        }
 
-                TokenPtrString::ConstIterator TopTokenStringIterator() const;
+        inline const std::string& GetComment() const
+        {
+            return comment_;
+        }
 
-                virtual TokenPtr Next() = 0;
+    protected:
+        using Tokens = Token::Types;
 
-                TokenPtr ActiveToken() const;
-                TokenPtr PreviousToken() const;
+        TokenPtr NextToken(bool scan_comments_a, bool scan_white_spaces_a);
 
-                inline const SourcePosition& Pos() const
-                {
-                    return next_start_pos_;
-                }
+        void StoreStartPos();
 
-                inline SourceCode* Source() const
-                {
-                    return source_.get();
-                }
+        virtual TokenPtr ScanToken() = 0;
 
-                inline const SourceCodePtr& GetSharedSource() const
-                {
-                    return source_;
-                }
+        char Take(char chr_a);
+        char TakeIt();
 
-                inline const std::string& GetComment() const
-                {
-                    return comment_;
-                }
+        TokenPtr Make(const Token::Types& type_a, bool take_chr_a = false);
+        TokenPtr Make(const Token::Types& type_a,
+                      std::string& spell_a,
+                      bool take_chr_a = false);
 
-            protected:
-                using Tokens = Token::Types;
+        TokenPtr Make(const Token::Types& type_a,
+                      std::string& spell_a,
+                      const SourcePosition& pos_a,
+                      bool take_chr_a = false);
 
-                TokenPtr NextToken(bool scan_comments_a, bool scan_white_spaces_a);
+        [[noreturn]]
+        void Error(const std::string& msg_a);
 
-                void StoreStartPos();
+        [[noreturn]]
+        void ErrorUnexpected();
 
-                virtual TokenPtr ScanToken() = 0;
+        [[noreturn]]
+        void ErrorUnexpected(char expected_char_a);
 
-                char Take(char chr_a);
-                char TakeIt();
+        [[noreturn]]
+        void ErrorUnexpectedEOS();
 
-                TokenPtr Make(const Token::Types& type_a, bool take_chr_a = false);
-                TokenPtr Make(const Token::Types& type_a,
-                              std::string& spell_a,
-                              bool take_chr_a = false);
-                
-                TokenPtr Make(const Token::Types& type_a,
-                              std::string& spell_a,
-                              const SourcePosition& pos_a,
-                              bool take_chr_a = false);
+        void Ignore(const std::function<bool(char)>& pred_a);
+        void IgnoreWhiteSpaces(bool include_new_lines_a = true);
 
-                [[noreturn]]
-                void Error(const std::string& msg_a);
+        TokenPtr ScanWhiteSpaces(bool include_new_lines_a = true);
+        TokenPtr ScanCommentLine(bool scan_comments_a);
+        TokenPtr ScanCommentBlock(bool scan_comments_a);
+        TokenPtr ScanStringLiteral();
+        TokenPtr ScanCharLiteral();
+        TokenPtr ScanNumber(bool start_with_period_a = false);
+        TokenPtr ScanNumberOrDot();
+        TokenPtr ScanVarArg(std::string& spell_a);
 
-                [[noreturn]]
-                void ErrorUnexpected();
+        bool ScanDigitSequence(std::string& spell_a);
 
-                [[noreturn]]
-                void ErrorUnexpected(char expected_char_a);
+        inline bool IsNewLine() const
+        {
+            return (chr_ == '\n' || chr_ == '\r');
+        }
 
-                [[noreturn]]
-                void ErrorUnexpectedEOS();
+        inline bool Is(char chr_a) const
+        {
+            return (chr_ == chr_a);
+        }
 
-                void Ignore(const std::function<bool(char)>& pred_a);
-                void IgnoreWhiteSpaces(bool include_new_lines_a = true);
+        inline char Chr() const
+        {
+            return chr_;
+        }
 
-                TokenPtr ScanWhiteSpaces(bool include_new_lines_a = true);
-                TokenPtr ScanCommentLine(bool scan_comments_a);
-                TokenPtr ScanCommentBlock(bool scan_comments_a);
-                TokenPtr ScanStringLiteral();
-                TokenPtr ScanCharLiteral();
-                TokenPtr ScanNumber(bool start_with_period_a = false);
-                TokenPtr ScanNumberOrDot();
-                TokenPtr ScanVarArg(std::string& spell_a);
+        inline unsigned char UChr() const
+        {
+            return static_cast<unsigned char>(chr_);
+        }
 
-                bool ScanDigitSequence(std::string& spell_a);
+    private:
+        TokenPtr NextTokenScan(bool scan_comments_a, bool scan_white_spaces_a);
 
-                inline bool IsNewLine() const
-                {
-                    return (chr_ == '\n' || chr_ == '\r');
-                }
+        void AppendComment(const std::string& s_a);
+        void AppendMultiLineComment(const std::string& s_a);
 
-                inline bool Is(char chr_a) const
-                {
-                    return (chr_ == chr_a);
-                }
+    private:
+        SourceCodePtr source_;
+        char chr_ = 0;
 
-                inline char Chr() const
-                {
-                    return chr_;
-                }
+        Log* log_ = nullptr;
 
-                inline unsigned char UChr() const
-                {
-                    return static_cast<unsigned char>(chr_);
-                }
+        SourcePosition next_start_pos_;
+        TokenPtr active_token_;
+        TokenPtr prev_token_;
 
-            private:
-                TokenPtr NextTokenScan(bool scan_comments_a, bool scan_white_spaces_a);
+        std::vector<TokenPtrString::ConstIterator> token_string_it_stack_;
 
-                void AppendComment(const std::string& s_a);
-                void AppendMultiLineComment(const std::string& s_a);
+        std::string comment_;
+        unsigned int comment_start_pos_ = 0;
+        bool comment_first_line_ = false;
+    };
 
-            private:
-                SourceCodePtr source_;
-                char chr_ = 0;
-
-                Log* log_ = nullptr;
-
-                SourcePosition next_start_pos_;
-                TokenPtr active_token_;
-                TokenPtr prev_token_;
-
-                std::vector<TokenPtrString::ConstIterator> token_string_it_stack_;
-
-                std::string comment_;
-                unsigned int comment_start_pos_ = 0;
-                bool comment_first_line_ = false;
-            };
-
-            using ScannerPtr = std::shared_ptr<Scanner>;
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    using ScannerPtr = std::shared_ptr<Scanner>;
+} // namespace OL
+ 
+#endif

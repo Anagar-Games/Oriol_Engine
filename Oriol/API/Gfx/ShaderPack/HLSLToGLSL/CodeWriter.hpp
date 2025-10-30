@@ -1,6 +1,9 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_CODEWRITER_HPP
+#define OL_CODEWRITER_HPP
+
 #include "IndentHandler.hpp"
 
 #include <list>
@@ -8,112 +11,107 @@
 #include <stack>
 #include <vector>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class CodeWriter : public IndentHandler
     {
-        namespace ShaderPack
+    public:
+        struct Options
         {
-            class CodeWriter : public IndentHandler
-            {
-            public:
-                struct Options
-                {
-                    Options() = default;
+            Options() = default;
 
-                    inline Options(bool enable_new_line_a, bool enable_indent_a)
-                        : enable_new_line_ {enable_new_line_a},
-                          enable_indent_ {enable_indent_a}
-                    {}
+            inline Options(bool enable_new_line_a, bool enable_indent_a)
+                : enable_new_line_ {enable_new_line_a},
+                  enable_indent_ {enable_indent_a}
+            {}
 
-                    bool enable_new_line_ = true;
-                    bool enable_indent_ = true;
-                };
+            bool enable_new_line_ = true;
+            bool enable_indent_ = true;
+        };
 
-                void OutputStream(std::ostream& stream_a);
+        void OutputStream(std::ostream& stream_a);
 
-                void PushOptions(const Options& options_a);
-                void PopOptions();
+        void PushOptions(const Options& options_a);
+        void PopOptions();
 
-                void BeginSeparation();
-                void EndSeparation();
+        void BeginSeparation();
+        void EndSeparation();
 
-                void Separator();
-                void BeginLine();
-                void EndLine();
+        void Separator();
+        void BeginLine();
+        void EndLine();
 
-                void Write(const std::string& text_a);
-                void WriteLine(const std::string& text_a);
+        void Write(const std::string& text_a);
+        void WriteLine(const std::string& text_a);
 
-                void BeginScope(bool compact_a = false,
-                                bool end_with_semicolon_a = false,
-                                bool use_braces_a = true);
-                
-                void EndScope();
-                void ContinueScope();
+        void BeginScope(bool compact_a = false,
+                        bool end_with_semicolon_a = false,
+                        bool use_braces_a = true);
 
-                inline bool IsOpenLine() const
-                {
-                    return open_line_;
-                }
+        void EndScope();
+        void ContinueScope();
 
-                bool new_line_open_scope_ = false;
+        inline bool IsOpenLine() const
+        {
+            return open_line_;
+        }
 
-            private:
-                struct SeparatedLine
-                {
-                    std::string indent_;
-                    std::vector<std::string> parts_;
+        bool new_line_open_scope_ = false;
 
-                    void Tab();
-                    void Offsets(std::vector<std::size_t>& offsets_a) const;
+    private:
+        struct SeparatedLine
+        {
+            std::string indent_;
+            std::vector<std::string> parts_;
 
-                    SeparatedLine& operator<<(const std::string& text_a);
-                };
+            void Tab();
+            void Offsets(std::vector<std::size_t>& offsets_a) const;
 
-                struct SeparatedLineQueue
-                {
-                    std::list<SeparatedLine> lines_;
+            SeparatedLine& operator<<(const std::string& text_a);
+        };
 
-                    SeparatedLine& Current();
-                };
+        struct SeparatedLineQueue
+        {
+            std::list<SeparatedLine> lines_;
 
-                struct ScopeState
-                {
-                    bool scope_can_continue_ = false;
-                    bool scope_used_braces_ = false;
-                    bool begin_line_queued_ = false;
-                    bool end_line_queued_ = false;
-                };
+            SeparatedLine& Current();
+        };
 
-                struct ScopeOptions
-                {
-                    bool compact_;
-                    bool end_with_semicolon_;
-                    bool use_braces_;
-                };
+        struct ScopeState
+        {
+            bool scope_can_continue_ = false;
+            bool scope_used_braces_ = false;
+            bool begin_line_queued_ = false;
+            bool end_line_queued_ = false;
+        };
 
-                Options CurrentOptions() const;
+        struct ScopeOptions
+        {
+            bool compact_;
+            bool end_with_semicolon_;
+            bool use_braces_;
+        };
 
-                void FlushSeparatedLines(SeparatedLineQueue& line_queue_a);
+        Options CurrentOptions() const;
 
-                inline std::ostream& Out()
-                {
-                    return (*stream_);
-                }
+        void FlushSeparatedLines(SeparatedLineQueue& line_queue_a);
 
-            private:
-                std::ostream* stream_ = nullptr;
+        inline std::ostream& Out()
+        {
+            return (*stream_);
+        }
 
-                std::stack<Options> options_stack_;
-                bool open_line_ = false;
+    private:
+        std::ostream* stream_ = nullptr;
 
-                unsigned int line_separation_level_ = 0;
-                SeparatedLineQueue queued_separated_lines_;
+        std::stack<Options> options_stack_;
+        bool open_line_ = false;
 
-                ScopeState scope_state_;
-                std::stack<ScopeOptions> scope_option_stack_;
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+        unsigned int line_separation_level_ = 0;
+        SeparatedLineQueue queued_separated_lines_;
+
+        ScopeState scope_state_;
+        std::stack<ScopeOptions> scope_option_stack_;
+    };
+} // namespace OL
+#endif

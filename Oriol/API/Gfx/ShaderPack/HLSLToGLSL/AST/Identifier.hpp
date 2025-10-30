@@ -1,118 +1,112 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef IDENTIFIER_HPP
+#define IDENTIFIER_HPP
+
 #include <string>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class Identifier
     {
-        namespace ShaderPack
+    public:
+        Identifier() = default;
+        Identifier(const Identifier&) = default;
+
+        Identifier& operator=(const Identifier& rhs_a);
+        Identifier& operator=(const std::string& s_a);
+        Identifier& AppendPrefix(const std::string& prefix_a);
+        Identifier& RemovePrefix(const std::string& prefix_a);
+
+        const std::string& Final() const;
+
+        inline bool Empty() const
         {
-            class Identifier
-            {
-            public:
-                Identifier() = default;
-                Identifier(const Identifier&) = default;
+            return Final().empty();
+        }
 
-                Identifier& operator=(const Identifier& rhs_a);
-                Identifier& operator=(const std::string& s_a);
-                Identifier& AppendPrefix(const std::string& prefix_a);
-                Identifier& RemovePrefix(const std::string& prefix_a);
+        inline operator const std::string&() const
+        {
+            return Final();
+        }
 
-                const std::string& Final() const;
+        inline const std::string& Original() const
+        {
+            return original_;
+        }
 
-                inline bool Empty() const
-                {
-                    return Final().empty();
-                }
+        inline bool IsRenamed() const
+        {
+            return !renamed_.empty();
+        }
 
-                inline operator const std::string&() const
-                {
-                    return Final();
-                }
+    private:
+        bool original_set_ = false;
+        std::string original_;
 
-                inline const std::string& Original() const
-                {
-                    return original_;
-                }
+        bool renamed_set_ = false;
+        std::string renamed_;
 
-                inline bool IsRenamed() const
-                {
-                    return !renamed_.empty();
-                }
+        int counter_ = 0;
+    };
 
-            private:
-                bool original_set_ = false;
-                std::string original_;
+    inline bool operator==(const Identifier& lhs_a, const Identifier& rhs_a)
+    {
+        return (std::string(lhs_a) == std::string(rhs_a));
+    }
 
-                bool renamed_set_ = false;
-                std::string renamed_;
+    inline bool operator==(const std::string& lhs_a, const Identifier& rhs_a)
+    {
+        return (lhs_a == std::string(rhs_a));
+    }
 
-                int counter_ = 0;
-            };
+    inline bool operator==(const Identifier& lhs_a, const std::string& rhs_a)
+    {
+        return (std::string(lhs_a) == rhs_a);
+    }
 
-            inline bool operator==(const Identifier& lhs_a, const Identifier& rhs_a)
-            {
-                return (std::string(lhs_a) == std::string(rhs_a));
-            }
+    inline bool operator!=(const Identifier& lhs_a, const Identifier& rhs_a)
+    {
+        return (std::string(lhs_a) != std::string(rhs_a));
+    }
 
-            inline bool operator==(const std::string& lhs_a,
-                                   const Identifier& rhs_a)
-            {
-                return (lhs_a == std::string(rhs_a));
-            }
+    inline bool operator!=(const std::string& lhs_a, const Identifier& rhs_a)
+    {
+        return (lhs_a != std::string(rhs_a));
+    }
 
-            inline bool operator==(const Identifier& lhs_a,
-                                   const std::string& rhs_a)
-            {
-                return (std::string(lhs_a) == rhs_a);
-            }
+    inline bool operator!=(const Identifier& lhs_a, const std::string& rhs_a)
+    {
+        return (std::string(lhs_a) != rhs_a);
+    }
 
-            inline bool operator!=(const Identifier& lhs_a, const Identifier& rhs_a)
-            {
-                return (std::string(lhs_a) != std::string(rhs_a));
-            }
+    inline std::string operator+(const Identifier& lhs_a,
+                                 const Identifier& rhs_a)
+    {
+        return (std::string(lhs_a) + std::string(rhs_a));
+    }
 
-            inline bool operator!=(const std::string& lhs_a,
-                                   const Identifier& rhs_a)
-            {
-                return (lhs_a != std::string(rhs_a));
-            }
+    inline std::string operator+(const std::string& lhs_a,
+                                 const Identifier& rhs_a)
+    {
+        return (lhs_a + std::string(rhs_a));
+    }
 
-            inline bool operator!=(const Identifier& lhs_a,
-                                   const std::string& rhs_a)
-            {
-                return (std::string(lhs_a) != rhs_a);
-            }
+    inline std::string operator+(const Identifier& lhs_a,
+                                 const std::string& rhs_a)
+    {
+        return (std::string(lhs_a) + rhs_a);
+    }
 
-            inline std::string operator+(const Identifier& lhs_a,
-                                         const Identifier& rhs_a)
-            {
-                return (std::string(lhs_a) + std::string(rhs_a));
-            }
+    inline std::string operator+(char lhs_a, const Identifier& rhs_a)
+    {
+        return (lhs_a + std::string(rhs_a));
+    }
 
-            inline std::string operator+(const std::string& lhs_a,
-                                         const Identifier& rhs_a)
-            {
-                return (lhs_a + std::string(rhs_a));
-            }
-
-            inline std::string operator+(const Identifier& lhs_a,
-                                         const std::string& rhs_a)
-            {
-                return (std::string(lhs_a) + rhs_a);
-            }
-
-            inline std::string operator+(char lhs_a, const Identifier& rhs_a)
-            {
-                return (lhs_a + std::string(rhs_a));
-            }
-
-            inline std::string operator+(const Identifier& lhs_a, char rhs_a)
-            {
-                return (std::string(lhs_a) + rhs_a);
-            }
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    inline std::string operator+(const Identifier& lhs_a, char rhs_a)
+    {
+        return (std::string(lhs_a) + rhs_a);
+    }
+} // namespace OL
+#endif

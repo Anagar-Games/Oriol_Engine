@@ -1,66 +1,63 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_EXCEPTION_HPP
+#define OL_EXCEPTION_HPP
+
 #include <stdexcept>
 #include <vector>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    struct AST;
+
+    class ASTRuntimeError : public std::runtime_error
     {
-        namespace ShaderPack
+    public:
+        explicit ASTRuntimeError(const char* msg_a, const AST* ast_a);
+        explicit ASTRuntimeError(const std::string& msg_a, const AST* ast_a);
+
+        explicit ASTRuntimeError(
+                const std::string& msg_a,
+                const AST* ast_a,
+                const std::vector<const AST*>& ast_appendices_a);
+
+        inline const AST* GetAST() const
         {
-            struct AST;
+            return ast_;
+        }
 
-            class ASTRuntimeError : public std::runtime_error
-            {
-            public:
-                explicit ASTRuntimeError(const char* msg_a, const AST* ast_a);
-                explicit ASTRuntimeError(const std::string& msg_a,
-                                         const AST* ast_a);
-                
-                explicit ASTRuntimeError(
-                        const std::string& msg_a,
-                        const AST* ast_a,
-                        const std::vector<const AST*>& ast_appendices_a);
+        inline const std::vector<const AST*>& GetASTAppendices() const
+        {
+            return ast_appendices_;
+        }
 
-                inline const AST* GetAST() const
-                {
-                    return ast_;
-                }
+    private:
+        const AST* ast_ = nullptr;
+        std::vector<const AST*> ast_appendices_;
+    };
 
-                inline const std::vector<const AST*>& GetASTAppendices() const
-                {
-                    return ast_appendices_;
-                }
+    [[noreturn]]
+    void RuntimeErr(const char* msg_a);
 
-            private:
-                const AST* ast_ = nullptr;
-                std::vector<const AST*> ast_appendices_;
-            };
+    [[noreturn]]
+    void RuntimeErr(const std::string& msg_a);
 
-            [[noreturn]]
-            void RuntAzeErr(const char* msg_a);
+    [[noreturn]]
+    void RuntimeErr(const char* msg_a, const AST* ast_a);
 
-            [[noreturn]]
-            void RuntAzeErr(const std::string& msg_a);
+    [[noreturn]]
+    void RuntimeErr(const std::string& msg_a, const AST* ast_a);
 
-            [[noreturn]]
-            void RuntAzeErr(const char* msg_a, const AST* ast_a);
+    [[noreturn]]
+    void RuntimeErr(const std::string& msg_a,
+                    const AST* ast_a,
+                    const std::vector<const AST*>& ast_appendices_a);
 
-            [[noreturn]]
-            void RuntAzeErr(const std::string& msg_a, const AST* ast_a);
+    [[noreturn]]
+    void InvalidArg(const char* msg_a);
 
-            [[noreturn]]
-            void RuntAzeErr(const std::string& msg_a,
-                            const AST* ast_a,
-                            const std::vector<const AST*>& ast_appendices_a);
-
-            [[noreturn]]
-            void InvalidArg(const char* msg_a);
-
-            [[noreturn]]
-            void InvalidArg(const std::string& msg_a);
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    [[noreturn]]
+    void InvalidArg(const std::string& msg_a);
+} // namespace OL
+#endif

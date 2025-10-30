@@ -1,6 +1,9 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_PREPROCESSOR_HPP
+#define OL_PREPROCESSOR_HPP
+
 #include "../AST/ASTEnums.hpp"
 #include "../AST/TokenString.hpp"
 #include "../HTG.hpp"
@@ -16,182 +19,173 @@
 #include <set>
 #include <stack>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class PreProcessor : public Parser
     {
-        namespace ShaderPack
+    public:
+        PreProcessor(IncludeHandler& include_handler_a, Log* log_a = nullptr);
+
+        std::unique_ptr<std::iostream> Process(
+                const SourceCodePtr& input_a,
+                const std::string& filename_a = "",
+                bool write_line_marks_a = true,
+                bool write_line_mark_filenames_a = true,
+                bool enable_warnings_a = false);
+
+        std::vector<std::string> ListDefinedMacroIdents() const;
+
+    protected:
+        struct Macro
         {
-            class PreProcessor : public Parser
-            {
-            public:
-                PreProcessor(IncludeHandler& include_handler_a,
-                             Log* log_a = nullptr);
+            Macro() = default;
+            Macro(const Macro&) = default;
+            Macro& operator=(const Macro&) = default;
 
-                std::unique_ptr<std::iostream> Process(
-                        const SourceCodePtr& input_a,
-                        const std::string& filename_a = "",
-                        bool write_line_marks_a = true,
-                        bool write_line_mark_filenames_a = true,
-                        bool enable_warnings_a = false);
+            Macro(const TokenPtr& ident_tkn_a);
+            Macro(const TokenPtr& ident_tkn_a, const TokenPtrString& value_a);
 
-                std::vector<std::string> ListDefinedMacroIdents() const;
+            Macro(const TokenPtr& ident_tkn_a,
+                  const TokenPtrString& value_a,
+                  const std::vector<std::string>& parameters_a,
+                  bool var_args_a = false,
+                  bool std_macro_a = false,
+                  bool empty_param_list_a = false);
 
-            protected:
-                struct Macro
-                {
-                    Macro() = default;
-                    Macro(const Macro&) = default;
-                    Macro& operator=(const Macro&) = default;
+            bool HasParameterList() const;
 
-                    Macro(const TokenPtr& ident_tkn_a);
-                    Macro(const TokenPtr& ident_tkn_a,
-                          const TokenPtrString& value_a);
+            TokenPtr ident_tkn_;
+            TokenPtrString token_string_;
+            std::vector<std::string> parameters_;
 
-                    Macro(const TokenPtr& ident_tkn_a,
-                          const TokenPtrString& value_a,
-                          const std::vector<std::string>& parameters_a,
-                          bool var_args_a = false,
-                          bool std_macro_a = false,
-                          bool empty_param_list_a = false);
+            bool var_args_ = false;
+            bool std_macro_ = false;
+            bool empty_param_list_ = false;
+        };
 
-                    bool HasParameterList() const;
+        virtual void ParseDirective(const std::string& directive_a,
+                                    bool ignore_unknown_a);
 
-                    TokenPtr ident_tkn_;
-                    TokenPtrString token_string_;
-                    std::vector<std::string> parameters_;
+        virtual void WriteLineDirective(unsigned int line_no_a,
+                                        const std::string& filename_a);
 
-                    bool var_args_ = false;
-                    bool std_macro_ = false;
-                    bool empty_param_list_ = false;
-                };
+        void IgnoreDirective();
+        void DefineMacro(const Macro& macro_a);
+        void DefineStandardMacro(const std::string& ident_a,
+                                 int int_value_a = 1);
 
-                virtual void ParseDirective(const std::string& directive_a,
-                                            bool ignore_unknown_a);
-                
-                virtual void WriteLineDirective(unsigned int line_no_a,
-                                                const std::string& filename_a);
+        void UndefineMacro(const std::string& ident_a,
+                           const Token* tkn_a = nullptr);
 
-                void IgnoreDirective();
-                void DefineMacro(const Macro& macro_a);
-                void DefineStandardMacro(const std::string& ident_a,
-                                         int int_value_a = 1);
-               
-                void UndefineMacro(const std::string& ident_a,
-                                   const Token* tkn_a = nullptr);
+        bool IsDefined(const std::string& ident_a) const;
 
-                bool IsDefined(const std::string& ident_a) const;
+        virtual bool OnDefineMacro(const Macro& macro_a);
+        virtual bool OnRedefineMacro(const Macro& macro_a,
+                                     const Macro& previous_macro_a);
 
-                virtual bool OnDefineMacro(const Macro& macro_a);
-                virtual bool OnRedefineMacro(const Macro& macro_a,
-                                             const Macro& previous_macro_a);
-                
-                virtual bool OnUndefineMacro(const Macro& macro_a);
-                virtual bool OnSubstitueStdMacro(const Token& ident_tkn_a,
-                                                 TokenPtrString& token_string_a);
+        virtual bool OnUndefineMacro(const Macro& macro_a);
+        virtual bool OnSubstitueStdMacro(const Token& ident_tkn_a,
+                                         TokenPtrString& token_string_a);
 
-                Variant EvaluateExpr(const TokenPtrString& token_string_a,
-                                     const Token* tkn_a = nullptr);
-                
-                Variant ParseAndEvaluateExpr(const Token* tkn_a = nullptr);
-                Variant ParseAndEvaluateArgumentExpr(
-                        const Token* tkn_a = nullptr);
+        Variant EvaluateExpr(const TokenPtrString& token_string_a,
+                             const Token* tkn_a = nullptr);
 
-                inline std::stringstream& Out()
-                {
-                    return *output_;
-                }
+        Variant ParseAndEvaluateExpr(const Token* tkn_a = nullptr);
+        Variant ParseAndEvaluateArgumentExpr(const Token* tkn_a = nullptr);
 
-            private:
-                struct IfBlock
-                {
-                    void SetActive(bool activate);
+        inline std::stringstream& Out()
+        {
+            return *output_;
+        }
 
-                    TokenPtr directive_token_;
-                    SourceCodePtr directive_source_;
-                    bool parent_active_ = true;
-                    bool active_ = true;
-                    bool was_active_ = false;
-                    bool else_allowed_ = true;
-                };
+    private:
+        struct IfBlock
+        {
+            void SetActive(bool activate);
 
-                using MacroPtr = std::shared_ptr<Macro>;
+            TokenPtr directive_token_;
+            SourceCodePtr directive_source_;
+            bool parent_active_ = true;
+            bool active_ = true;
+            bool was_active_ = false;
+            bool else_allowed_ = true;
+        };
 
-                ScannerPtr MakeScanner() override;
+        using MacroPtr = std::shared_ptr<Macro>;
 
-                void PushScannerSource(
-                        const SourceCodePtr& source_a,
-                        const std::string& filename_a = "") override;
-                
-                bool PopScannerSource() override;
-                void PushIfBlock(const TokenPtr& directive_token_a,
-                                 bool active_a = false,
-                                 bool else_allowed_a = true);
-                
-                void SetIfBlock(const TokenPtr& directive_token_a,
-                                bool active_a = false,
-                                bool else_allowed_a = true);
-                
-                void PopIfBlock();
-                IfBlock TopIfBlock() const;
-                TokenPtrString ExpandMacro(
-                        const Macro& macro_a,
-                        const std::vector<TokenPtrString>& arguments_a);
+        ScannerPtr MakeScanner() override;
 
-                void WritePosToLineDirective();
-                void ParseProgram();
+        void PushScannerSource(const SourceCodePtr& source_a,
+                               const std::string& filename_a = "") override;
 
-                void ParesComment();
-                void ParseIdent();
-                TokenPtrString ParseIdentAsTokenString();
-                TokenPtrString ParseIdentArgumentsForMacro(
-                        const TokenPtr& ident_token_a,
-                        const Macro& macro_a);
-                
-                void ParseMisc();
-                void ParseDirective();
-                void ParseAnyIfDirectiveAndSkipValidation();
-                void ParseDirectiveDefine();
-                void ParseDirectiveUndef();
-                void ParseDirectiveInclude();
-                void ParseDirectiveIf(bool skip_evaluation_a = false);
-                void ParseDirectiveIfdef(bool skip_evaluation_a = false);
-                void ParseDirectiveIfndef(bool skip_evaluation_a = false);
-                void ParseDirectiveElif(bool skip_evaluation_a = false);
-                void ParseDirectiveIfOrElifCondition(
-                        bool is_else_branch_a,
-                        bool skip_evaluation_a = false);
-                
-                void ParseDirectiveElse();
-                void ParseDirectiveEndif();
-                void ParseDirectivePragma();
-                void ParseDirectiveLine();
-                void ParseDirectiveError();
+        bool PopScannerSource() override;
+        void PushIfBlock(const TokenPtr& directive_token_a,
+                         bool active_a = false,
+                         bool else_allowed_a = true);
 
-                ExprPtr ParseExpr();
-                ExprPtr ParsePrAzaryExpr() override;
+        void SetIfBlock(const TokenPtr& directive_token_a,
+                        bool active_a = false,
+                        bool else_allowed_a = true);
 
-                TokenPtrString ParseDirectiveTokenString(
-                        bool expand_defined_directive_a = false,
-                        bool ignore_comments_a = false);
-               
-                TokenPtrString ParseArgumentTokenString();
-                std::string ParseDefinedMacro();
+        void PopIfBlock();
+        IfBlock TopIfBlock() const;
+        TokenPtrString ExpandMacro(
+                const Macro& macro_a,
+                const std::vector<TokenPtrString>& arguments_a);
 
-            private:
-                IncludeHandler& include_handler_;
+        void WritePosToLineDirective();
+        void ParseProgram();
 
-                std::unique_ptr<std::stringstream> output_;
+        void ParesComment();
+        void ParseIdent();
+        TokenPtrString ParseIdentAsTokenString();
+        TokenPtrString ParseIdentArgumentsForMacro(
+                const TokenPtr& ident_token_a,
+                const Macro& macro_a);
 
-                std::map<std::string, MacroPtr> macros_;
-                std::set<std::string> once_included_;
-                std::map<std::string, std::size_t> include_counter_;
+        void ParseMisc();
+        void ParseDirective();
+        void ParseAnyIfDirectiveAndSkipValidation();
+        void ParseDirectiveDefine();
+        void ParseDirectiveUndef();
+        void ParseDirectiveInclude();
+        void ParseDirectiveIf(bool skip_evaluation_a = false);
+        void ParseDirectiveIfdef(bool skip_evaluation_a = false);
+        void ParseDirectiveIfndef(bool skip_evaluation_a = false);
+        void ParseDirectiveElif(bool skip_evaluation_a = false);
+        void ParseDirectiveIfOrElifCondition(bool is_else_branch_a,
+                                             bool skip_evaluation_a = false);
 
-                std::stack<IfBlock> if_block_stack_;
+        void ParseDirectiveElse();
+        void ParseDirectiveEndif();
+        void ParseDirectivePragma();
+        void ParseDirectiveLine();
+        void ParseDirectiveError();
 
-                bool write_line_marks_ = true;
-                bool write_line_mark_filenames_ = true;
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+        ExprPtr ParseExpr();
+        ExprPtr ParsePrimaryExpr() override;
+
+        TokenPtrString ParseDirectiveTokenString(
+                bool expand_defined_directive_a = false,
+                bool ignore_comments_a = false);
+
+        TokenPtrString ParseArgumentTokenString();
+        std::string ParseDefinedMacro();
+
+    private:
+        IncludeHandler& include_handler_;
+
+        std::unique_ptr<std::stringstream> output_;
+
+        std::map<std::string, MacroPtr> macros_;
+        std::set<std::string> once_included_;
+        std::map<std::string, std::size_t> include_counter_;
+
+        std::stack<IfBlock> if_block_stack_;
+
+        bool write_line_marks_ = true;
+        bool write_line_mark_filenames_ = true;
+    };
+} // namespace OL
+
+#endif

@@ -2,225 +2,219 @@
 
 #include <cctype>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    SLScanner::SLScanner(Log* log_a) : Scanner {log_a}
+    {}
+
+    TokenPtr SLScanner::Next()
     {
-        namespace ShaderPack
+        return NextToken(false, false);
+    }
+
+    TokenPtr SLScanner::ScanToken()
+    {
+        std::string spell_;
+
+        if (Is('#'))
+            return ScanDirective();
+
+        if (std::isalpha(UChr()) || Is('_'))
+            return ScanIdentifier();
+
+        if (Is('.'))
+            return ScanNumberOrDot();
+        if (std::isdigit(UChr()))
+            return ScanNumber();
+
+        if (Is('\"'))
+            return ScanStringLiteral();
+
+        if (Is('='))
         {
-            SLScanner::SLScanner(Log* log_a) : Scanner {log_a}
-            {}
+            spell_ += TakeIt();
+            if (Is('='))
+                return Make(Tokens::BinaryOp, spell_, true);
+            return Make(Tokens::AssignOp, spell_);
+        }
 
-            TokenPtr SLScanner::Next()
-            {
-                return NextToken(false, false);
-            }
+        if (Is('~'))
+            return Make(Tokens::UnaryOp, spell_, true);
 
-            TokenPtr SLScanner::ScanToken()
-            {
-                std::string spell_;
+        if (Is('!'))
+        {
+            spell_ += TakeIt();
+            if (Is('='))
+                return Make(Tokens::BinaryOp, spell_, true);
+            return Make(Tokens::UnaryOp, spell_);
+        }
 
-                if (Is('#'))
-                    return ScanDirective();
+        if (Is('%'))
+        {
+            spell_ += TakeIt();
+            if (Is('='))
+                return Make(Tokens::AssignOp, spell_, true);
+            return Make(Tokens::BinaryOp, spell_);
+        }
 
-                if (std::isalpha(UChr()) || Is('_'))
-                    return ScanIdentifier();
+        if (Is('*'))
+        {
+            spell_ += TakeIt();
+            if (Is('='))
+                return Make(Tokens::AssignOp, spell_, true);
+            return Make(Tokens::BinaryOp, spell_);
+        }
 
-                if (Is('.'))
-                    return ScanNumberOrDot();
-                if (std::isdigit(UChr()))
-                    return ScanNumber();
+        if (Is('^'))
+        {
+            spell_ += TakeIt();
+            if (Is('='))
+                return Make(Tokens::AssignOp, spell_, true);
+            return Make(Tokens::BinaryOp, spell_);
+        }
 
-                if (Is('\"'))
-                    return ScanStringLiteral();
+        if (Is('+'))
+            return ScanPlusOp();
+        if (Is('-'))
+            return ScanMinusOp();
 
-                if (Is('='))
-                {
-                    spell_ += TakeIt();
-                    if (Is('='))
-                        return Make(Tokens::BinaryOp, spell_, true);
-                    return Make(Tokens::AssignOp, spell_);
-                }
+        if (Is('<') || Is('>'))
+            return ScanAssignShiftRelationOp(Chr());
 
-                if (Is('~'))
-                    return Make(Tokens::UnaryOp, spell_, true);
+        if (Is('&'))
+        {
+            spell_ += TakeIt();
+            if (Is('='))
+                return Make(Tokens::AssignOp, spell_, true);
+            if (Is('&'))
+                return Make(Tokens::BinaryOp, spell_, true);
+            return Make(Tokens::BinaryOp, spell_);
+        }
 
-                if (Is('!'))
-                {
-                    spell_ += TakeIt();
-                    if (Is('='))
-                        return Make(Tokens::BinaryOp, spell_, true);
-                    return Make(Tokens::UnaryOp, spell_);
-                }
+        if (Is('|'))
+        {
+            spell_ += TakeIt();
+            if (Is('='))
+                return Make(Tokens::AssignOp, spell_, true);
+            if (Is('|'))
+                return Make(Tokens::BinaryOp, spell_, true);
+            return Make(Tokens::BinaryOp, spell_);
+        }
 
-                if (Is('%'))
-                {
-                    spell_ += TakeIt();
-                    if (Is('='))
-                        return Make(Tokens::AssignOp, spell_, true);
-                    return Make(Tokens::BinaryOp, spell_);
-                }
+        if (Is(':'))
+        {
+            spell_ += TakeIt();
+            if (Is(':'))
+                return Make(Tokens::DColon, spell_, true);
+            return Make(Tokens::Colon, spell_);
+        }
 
-                if (Is('*'))
-                {
-                    spell_ += TakeIt();
-                    if (Is('='))
-                        return Make(Tokens::AssignOp, spell_, true);
-                    return Make(Tokens::BinaryOp, spell_);
-                }
+        switch (Chr())
+        {
+        case ';':
+            return Make(Tokens::Semicolon, true);
+            break;
+        case ',':
+            return Make(Tokens::Comma, true);
+            break;
+        case '?':
+            return Make(Tokens::TernaryOp, true);
+            break;
+        case '(':
+            return Make(Tokens::LBracket, true);
+            break;
+        case ')':
+            return Make(Tokens::RBracket, true);
+            break;
+        case '{':
+            return Make(Tokens::LCurly, true);
+            break;
+        case '}':
+            return Make(Tokens::RCurly, true);
+            break;
+        case '[':
+            return Make(Tokens::LParen, true);
+            break;
+        case ']':
+            return Make(Tokens::RParen, true);
+            break;
+        }
 
-                if (Is('^'))
-                {
-                    spell_ += TakeIt();
-                    if (Is('='))
-                        return Make(Tokens::AssignOp, spell_, true);
-                    return Make(Tokens::BinaryOp, spell_);
-                }
+        ErrorUnexpected();
 
-                if (Is('+'))
-                    return ScanPlusOp();
-                if (Is('-'))
-                    return ScanMinusOp();
+        return nullptr;
+    }
 
-                if (Is('<') || Is('>'))
-                    return ScanAssignShiftRelationOp(Chr());
+    TokenPtr SLScanner::ScanDirective()
+    {
+        std::string spell_;
+        Take('#');
 
-                if (Is('&'))
-                {
-                    spell_ += TakeIt();
-                    if (Is('='))
-                        return Make(Tokens::AssignOp, spell_, true);
-                    if (Is('&'))
-                        return Make(Tokens::BinaryOp, spell_, true);
-                    return Make(Tokens::BinaryOp, spell_);
-                }
+        IgnoreWhiteSpaces(false);
 
-                if (Is('|'))
-                {
-                    spell_ += TakeIt();
-                    if (Is('='))
-                        return Make(Tokens::AssignOp, spell_, true);
-                    if (Is('|'))
-                        return Make(Tokens::BinaryOp, spell_, true);
-                    return Make(Tokens::BinaryOp, spell_);
-                }
+        StoreStartPos();
 
-                if (Is(':'))
-                {
-                    spell_ += TakeIt();
-                    if (Is(':'))
-                        return Make(Tokens::DColon, spell_, true);
-                    return Make(Tokens::Colon, spell_);
-                }
+        while (std::isalpha(UChr()))
+            spell_ += TakeIt();
 
-                switch (Chr())
-                {
-                case ';':
-                    return Make(Tokens::Semicolon, true);
-                    break;
-                case ',':
-                    return Make(Tokens::Comma, true);
-                    break;
-                case '?':
-                    return Make(Tokens::TernaryOp, true);
-                    break;
-                case '(':
-                    return Make(Tokens::LBracket, true);
-                    break;
-                case ')':
-                    return Make(Tokens::RBracket, true);
-                    break;
-                case '{':
-                    return Make(Tokens::LCurly, true);
-                    break;
-                case '}':
-                    return Make(Tokens::RCurly, true);
-                    break;
-                case '[':
-                    return Make(Tokens::LParen, true);
-                    break;
-                case ']':
-                    return Make(Tokens::RParen, true);
-                    break;
-                }
+        return Make(Token::Types::Directive, spell_);
+    }
 
-                ErrorUnexpected();
+    TokenPtr SLScanner::ScanIdentifier()
+    {
+        std::string spell_;
+        spell_ += TakeIt();
 
-                return nullptr;
-            }
+        while (std::isalnum(UChr()) || Is('_'))
+            spell_ += TakeIt();
 
-            TokenPtr SLScanner::ScanDirective()
-            {
-                std::string spell_;
-                Take('#');
+        return ScanIdentifierOrKeyword(std::move(spell_));
+    }
 
-                IgnoreWhiteSpaces(false);
+    TokenPtr SLScanner::ScanAssignShiftRelationOp(const char chr_a)
+    {
+        std::string spell_;
+        spell_ += TakeIt();
 
-                StoreStartPos();
+        if (Is(chr_a))
+        {
+            spell_ += TakeIt();
 
-                while (std::isalpha(UChr()))
-                    spell_ += TakeIt();
+            if (Is('='))
+                return Make(Tokens::AssignOp, spell_, true);
 
-                return Make(Token::Types::Directive, spell_);
-            }
+            return Make(Tokens::BinaryOp, spell_);
+        }
 
-            TokenPtr SLScanner::ScanIdentifier()
-            {
-                std::string spell_;
-                spell_ += TakeIt();
+        if (Is('='))
+            spell_ += TakeIt();
 
-                while (std::isalnum(UChr()) || Is('_'))
-                    spell_ += TakeIt();
+        return Make(Tokens::BinaryOp, spell_);
+    }
 
-                return ScanIdentifierOrKeyword(std::move(spell_));
-            }
+    TokenPtr SLScanner::ScanPlusOp()
+    {
+        std::string spell_;
+        spell_ += TakeIt();
 
-            TokenPtr SLScanner::ScanAssignShiftRelationOp(const char chr_a)
-            {
-                std::string spell_;
-                spell_ += TakeIt();
+        if (Is('+'))
+            return Make(Tokens::UnaryOp, spell_, true);
+        else if (Is('='))
+            return Make(Tokens::AssignOp, spell_, true);
 
-                if (Is(chr_a))
-                {
-                    spell_ += TakeIt();
+        return Make(Tokens::BinaryOp, spell_);
+    }
 
-                    if (Is('='))
-                        return Make(Tokens::AssignOp, spell_, true);
+    TokenPtr SLScanner::ScanMinusOp()
+    {
+        std::string spell_;
+        spell_ += TakeIt();
 
-                    return Make(Tokens::BinaryOp, spell_);
-                }
+        if (Is('-'))
+            return Make(Tokens::UnaryOp, spell_, true);
+        else if (Is('='))
+            return Make(Tokens::AssignOp, spell_, true);
 
-                if (Is('='))
-                    spell_ += TakeIt();
-
-                return Make(Tokens::BinaryOp, spell_);
-            }
-
-            TokenPtr SLScanner::ScanPlusOp()
-            {
-                std::string spell_;
-                spell_ += TakeIt();
-
-                if (Is('+'))
-                    return Make(Tokens::UnaryOp, spell_, true);
-                else if (Is('='))
-                    return Make(Tokens::AssignOp, spell_, true);
-
-                return Make(Tokens::BinaryOp, spell_);
-            }
-
-            TokenPtr SLScanner::ScanMinusOp()
-            {
-                std::string spell_;
-                spell_ += TakeIt();
-
-                if (Is('-'))
-                    return Make(Tokens::UnaryOp, spell_, true);
-                else if (Is('='))
-                    return Make(Tokens::AssignOp, spell_, true);
-
-                return Make(Tokens::BinaryOp, spell_);
-            }
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+        return Make(Tokens::BinaryOp, spell_);
+    }
+} // namespace OL

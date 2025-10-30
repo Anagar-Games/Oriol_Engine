@@ -1,65 +1,63 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar GAmes
+// MIT License
 
-#pragma once
+#ifndef OL_LOG_HPP
+#define OL_LOG_HPP
+
 #include "IndentHandler.hpp"
 #include "Report.hpp"
 
 #include <string>
 #include <vector>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class HTG_EXPORT Log
     {
-        namespace ShaderPack
+    public:
+        virtual ~Log() = default;
+
+        virtual void SubmitReport(const Report& report_a) = 0;
+
+        inline void SetIndent(const std::string& indent_a)
         {
-            class HTG_EXPORT Log
-            {
-            public:
-                virtual ~Log() = default;
+            indent_handler_.SetIndent(indent_a);
+        }
 
-                virtual void SubmitReport(const Report& report_a) = 0;
+        inline void IncIndent()
+        {
+            indent_handler_.IncIndent();
+        }
 
-                inline void SetIndent(const std::string& indent_a)
-                {
-                    indent_handler_.SetIndent(indent_a);
-                }
+        inline void DecIndent()
+        {
+            indent_handler_.DecIndent();
+        }
 
-                inline void IncIndent()
-                {
-                    indent_handler_.IncIndent();
-                }
+    protected:
+        Log() = default;
 
-                inline void DecIndent()
-                {
-                    indent_handler_.DecIndent();
-                }
+        inline const std::string& FullIndent() const
+        {
+            return indent_handler_.FullIndent();
+        }
 
-            protected:
-                Log() = default;
+    private:
+        IndentHandler indent_handler_;
+    };
 
-                inline const std::string& FullIndent() const
-                {
-                    return indent_handler_.FullIndent();
-                }
+    class HTG_EXPORT StdLog : public Log
+    {
+    public:
+        StdLog();
+        ~StdLog();
 
-            private:
-                IndentHandler indent_handler_;
-            };
+        void SubmitReport(const Report& report_a) override;
+        void PrintAll(bool verbose_a = true);
 
-            class HTG_EXPORT StdLog : public Log
-            {
-            public:
-                StdLog();
-                ~StdLog();
-
-                void SubmitReport(const Report& report_a) override;
-                void PrintAll(bool verbose_a = true);
-
-            private:
-                struct OpaqueData;
-                OpaqueData* data_ = nullptr;
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    private:
+        struct OpaqueData;
+        OpaqueData* data_ = nullptr;
+    };
+} // namespace OL
+#endif

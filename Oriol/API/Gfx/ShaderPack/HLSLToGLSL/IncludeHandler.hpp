@@ -1,6 +1,9 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_INCLUDEHANDLER_HPP
+#define OL_INCLUDEHANDLER_HPP
+
 #include "Export.hpp"
 
 #include <istream>
@@ -8,28 +11,23 @@
 #include <string>
 #include <vector>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class HTG_EXPORT IncludeHandler
     {
-        namespace ShaderPack
-        {
-            class HTG_EXPORT IncludeHandler
-            {
-            public:
-                IncludeHandler();
-                virtual ~IncludeHandler();
-                virtual std::unique_ptr<std::istream> Include(
-                        const std::string& filename_a,
-                        bool use_search_paths_first_a);
+    public:
+        IncludeHandler();
+        virtual ~IncludeHandler();
+        virtual std::unique_ptr<std::istream> Include(
+                const std::string& filename_a,
+                bool use_search_paths_first_a);
 
-                std::vector<std::string>& GetSearchPaths();
-                const std::vector<std::string>& GetSearchPaths() const;
+        std::vector<std::string>& GetSearchPaths();
+        const std::vector<std::string>& GetSearchPaths() const;
 
-            private:
-                struct OpaqueData;
-                OpaqueData* data_ = nullptr;
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    private:
+        struct OpaqueData;
+        OpaqueData* data_ = nullptr;
+    };
+} // namespace OL
+#endif

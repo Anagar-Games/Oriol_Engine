@@ -1,19 +1,17 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef GLSLINTRINSICS_HPP
+#define GLSLINTRINSICS_HPP
+
 #include "../../AST/ASTEnums.hpp"
 #include "../../AST/Token.hpp"
 
 #include <string>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
-    {
-        namespace ShaderPack
-        {
-            const std::string* IntrinsicToGLSLKeyword(const Intrinsic intr_a,
-                                                      bool use_glsl_120_a = false);
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    const std::string* IntrinsicToGLSLKeyword(const Intrinsic intr_a,
+                                              bool use_glsl_120_a = false);
+} // namespace OL
+#endif

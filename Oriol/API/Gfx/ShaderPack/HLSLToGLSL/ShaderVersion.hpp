@@ -1,48 +1,46 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_SHADERVERSION_HPP
+#define OL_SHADERVERSION_HPP
+
 #include <string>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class ShaderVersion
     {
-        namespace ShaderPack
+    public:
+        ShaderVersion() = default;
+        ShaderVersion(const ShaderVersion&) = default;
+        ShaderVersion& operator=(const ShaderVersion&) = default;
+
+        ShaderVersion(int major_a, int minor_a);
+
+        std::string ToString() const;
+
+        inline int Major() const
         {
-            class ShaderVersion
-            {
-            public:
-                ShaderVersion() = default;
-                ShaderVersion(const ShaderVersion&) = default;
-                ShaderVersion& operator=(const ShaderVersion&) = default;
+            return major_;
+        }
 
-                ShaderVersion(int major_a, int minor_a);
+        inline int Minor() const
+        {
+            return minor_;
+        }
 
-                std::string ToString() const;
+    private:
+        int major_ = 0;
+        int minor_ = 0;
+    };
 
-                inline int Major() const
-                {
-                    return major_;
-                }
+    bool operator==(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
+    bool operator!=(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
 
-                inline int Minor() const
-                {
-                    return minor_;
-                }
+    bool operator<(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
+    bool operator<=(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
 
-            private:
-                int major_ = 0;
-                int minor_ = 0;
-            };
-
-            bool operator==(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
-            bool operator!=(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
-
-            bool operator<(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
-            bool operator<=(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
-
-            bool operator>(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
-            bool operator>=(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    bool operator>(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
+    bool operator>=(const ShaderVersion& lhs_a, const ShaderVersion& rhs_a);
+} // namespace OL
+#endif

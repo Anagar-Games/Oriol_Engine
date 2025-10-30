@@ -1,26 +1,25 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_PREPROCESSORSCANNER_HPP
+#define OL_PREPROCESSORSCANNER_HPP
+
 #include "Scanner.hpp"
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class PreProcessorScanner : public Scanner
     {
-        namespace ShaderPack
-        {
-            class PreProcessorScanner : public Scanner
-            {
-            public:
-                PreProcessorScanner(Log* log_a = nullptr);
+    public:
+        PreProcessorScanner(Log* log_a = nullptr);
 
-                TokenPtr Next() override;
+        TokenPtr Next() override;
 
-            private:
-                TokenPtr ScanToken() override;
-                TokenPtr ScanDirectiveOrDirectiveConcat();
-                TokenPtr ScanIdentifier();
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    private:
+        TokenPtr ScanToken() override;
+        TokenPtr ScanDirectiveOrDirectiveConcat();
+        TokenPtr ScanIdentifier();
+    };
+} // namespace OL
+
+#endif

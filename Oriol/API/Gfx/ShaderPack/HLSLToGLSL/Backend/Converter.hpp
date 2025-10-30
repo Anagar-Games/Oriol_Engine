@@ -1,6 +1,9 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef CONVERTER_HPP
+#define CONVERTER_HPP
+
 #include "../AST/Identifier.hpp"
 #include "../AST/TypeDenoter.hpp"
 #include "../AST/Visitor/VisitorTracker.hpp"
@@ -9,121 +12,113 @@
 
 #include <stack>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class Converter : public VisitorTracker
     {
-        namespace ShaderPack
-        {
-            class Converter : public VisitorTracker
-            {
-            public:
-                bool ConvertAST(Program& program_a,
-                                const ShaderInput& input_desc_a,
-                                const ShaderOutput& output_desc_a);
-
-            protected:
-                virtual void ConvertASTPrAzary(
-                        Program& program_a,
+    public:
+        bool ConvertAST(Program& program_a,
                         const ShaderInput& input_desc_a,
-                        const ShaderOutput& output_desc_a) = 0;
+                        const ShaderOutput& output_desc_a);
 
-                void OpenScope();
-                void CloseScope();
-                void Register(const std::string& ident_a);
+    protected:
+        virtual void ConvertASTPrimary(Program& program_a,
+                                       const ShaderInput& input_desc_a,
+                                       const ShaderOutput& output_desc_a) = 0;
 
-                bool Fetch(const std::string& ident_a) const;
-                bool FetchFromCurrentScope(const std::string& ident_a) const;
+        void OpenScope();
+        void CloseScope();
+        void Register(const std::string& ident_a);
 
-                void PushSelfParameter(VarDecl* parameter_a);
-                void PopSelfParameter();
+        bool Fetch(const std::string& ident_a) const;
+        bool FetchFromCurrentScope(const std::string& ident_a) const;
 
-                VarDecl* ActiveSelfParameter() const;
+        void PushSelfParameter(VarDecl* parameter_a);
+        void PopSelfParameter();
 
-                void RenameIdent(Identifier& ident_a);
-                void RenameIdentObfuscated(Identifier& ident_a);
-                void RenameIdentOf(Decl* obj);
-                void RenameIdentOfInOutVarDecls(
-                        const std::vector<VarDecl*>& var_decls_a,
-                        bool input_a,
-                        bool use_semantic_only_a = false);
-                
-                void LabelAnonymousDecl(Decl* decl_obj_a);
-                void VisitScopedStmnt(StmntPtr& stmnt_a, void* args_a = nullptr);
-                void VisitScopedStmntList(std::vector<StmntPtr>& stmnt_list_a,
-                                          void* args_a = nullptr);
-                
-                void InsertStmntBefore(const StmntPtr& stmnt_a,
-                                       bool global_scope_a = false);
-                
-                void InsertStmntAfter(const StmntPtr& stmnt_a,
-                                      bool global_scope_a = false);
-                
-                void MoveNestedStructDecls(std::vector<StmntPtr>& local_stmnts_a,
-                                           bool global_scope_a = false);
+        VarDecl* ActiveSelfParameter() const;
 
-                bool IsGlobalInOutVarDecl(VarDecl* var_decl_a) const;
-                bool IsSamplerStateTypeDenoter(
-                        const TypeDenoterPtr& type_denoter_a) const;
-                
-                void RemoveDeadCode(std::vector<StmntPtr>& stmnts_a);
-                std::string MakeTempVarIdent();
+        void RenameIdent(Identifier& ident_a);
+        void RenameIdentObfuscated(Identifier& ident_a);
+        void RenameIdentOf(Decl* obj);
+        void RenameIdentOfInOutVarDecls(
+                const std::vector<VarDecl*>& var_decls_a,
+                bool input_a,
+                bool use_semantic_only_a = false);
 
-                inline Program* GetProgram() const
-                {
-                    return program_;
-                }
+        void LabelAnonymousDecl(Decl* decl_obj_a);
+        void VisitScopedStmnt(StmntPtr& stmnt_a, void* args_a = nullptr);
+        void VisitScopedStmntList(std::vector<StmntPtr>& stmnt_list_a,
+                                  void* args_a = nullptr);
 
-                inline const NameMangling& GetNameMangling() const
-                {
-                    return name_mangling_;
-                }
+        void InsertStmntBefore(const StmntPtr& stmnt_a,
+                               bool global_scope_a = false);
 
-            private:
-                class StmntScopeHandler
-                {
-                public:
-                    StmntScopeHandler(const StmntScopeHandler&) = default;
-                    StmntScopeHandler& operator=(const StmntScopeHandler&) =
-                            default;
+        void InsertStmntAfter(const StmntPtr& stmnt_a,
+                              bool global_scope_a = false);
 
-                    StmntScopeHandler(StmntPtr& stmnt_a);
-                    StmntScopeHandler(std::vector<StmntPtr>& stmnts_a);
+        void MoveNestedStructDecls(std::vector<StmntPtr>& local_stmnts_a,
+                                   bool global_scope_a = false);
 
-                    Stmnt* Next();
+        bool IsGlobalInOutVarDecl(VarDecl* var_decl_a) const;
+        bool IsSamplerStateTypeDenoter(
+                const TypeDenoterPtr& type_denoter_a) const;
 
-                    void InsertStmntBefore(const StmntPtr& stmnt_a);
-                    void InsertStmntAfter(const StmntPtr& stmnt_a);
+        void RemoveDeadCode(std::vector<StmntPtr>& stmnts_a);
+        std::string MakeTempVarIdent();
 
-                private:
-                    void EnsureStmntList();
-                    void InsertStmntAt(const StmntPtr& stmnt_a, std::size_t pos_a);
+        inline Program* GetProgram() const
+        {
+            return program_;
+        }
 
-                    StmntPtr* stmnt_ = nullptr;
-                    std::vector<StmntPtr>* stmnt_list_ = nullptr;
-                    std::size_t idx_ = 0;
-                };
+        inline const NameMangling& GetNameMangling() const
+        {
+            return name_mangling_;
+        }
 
-                void VisitScopedStmntsFromHandler(
-                        const StmntScopeHandler& handler_a,
-                        void* args_a);
+    private:
+        class StmntScopeHandler
+        {
+        public:
+            StmntScopeHandler(const StmntScopeHandler&) = default;
+            StmntScopeHandler& operator=(const StmntScopeHandler&) = default;
 
-            private:
-                StmntScopeHandler& ActiveStmntScopeHandler();
-                SymbolTable<bool> sym_table_;
+            StmntScopeHandler(StmntPtr& stmnt_a);
+            StmntScopeHandler(std::vector<StmntPtr>& stmnts_a);
 
-                Program* program_ = nullptr;
-                NameMangling name_mangling_;
+            Stmnt* Next();
 
-                std::vector<VarDecl*> self_param_stack_;
+            void InsertStmntBefore(const StmntPtr& stmnt_a);
+            void InsertStmntAfter(const StmntPtr& stmnt_a);
 
-                std::stack<StmntScopeHandler> stmnt_scope_handler_stack_;
-                StmntScopeHandler* stmnt_scope_handler_global_ref_ = nullptr;
+        private:
+            void EnsureStmntList();
+            void InsertStmntAt(const StmntPtr& stmnt_a, std::size_t pos_a);
 
-                unsigned int anonym_counter_ = 0;
-                unsigned int obfuscation_counter_ = 0;
-                unsigned int temp_var_counter_ = 0;
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+            StmntPtr* stmnt_ = nullptr;
+            std::vector<StmntPtr>* stmnt_list_ = nullptr;
+            std::size_t idx_ = 0;
+        };
+
+        void VisitScopedStmntsFromHandler(const StmntScopeHandler& handler_a,
+                                          void* args_a);
+
+    private:
+        StmntScopeHandler& ActiveStmntScopeHandler();
+        SymbolTable<bool> sym_table_;
+
+        Program* program_ = nullptr;
+        NameMangling name_mangling_;
+
+        std::vector<VarDecl*> self_param_stack_;
+
+        std::stack<StmntScopeHandler> stmnt_scope_handler_stack_;
+        StmntScopeHandler* stmnt_scope_handler_global_ref_ = nullptr;
+
+        unsigned int anonym_counter_ = 0;
+        unsigned int obfuscation_counter_ = 0;
+        unsigned int temp_var_counter_ = 0;
+    };
+} // namespace OL
+#endif

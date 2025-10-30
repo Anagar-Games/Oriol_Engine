@@ -1,6 +1,9 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef EXPREVALUATOR_HPP
+#define EXPREVALUATOR_HPP
+
 #include "../../Flags.hpp"
 #include "../../Variant.hpp"
 #include "Visitor.hpp"
@@ -8,75 +11,67 @@
 #include <functional>
 #include <stack>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class ExprEvaluator : private Visitor
     {
-        namespace ShaderPack
+    public:
+        enum : unsigned int
         {
-            class ExprEvaluator : private Visitor
-            {
-            public:
-                enum : unsigned int
-                {
-                    EvaluateReducedBinaryExpr = (1 << 0),
-                };
+            EvaluateReducedBinaryExpr = (1 << 0),
+        };
 
-                ExprEvaluator(Flags flags_a = 0);
+        ExprEvaluator(Flags flags_a = 0);
 
-                using OnObjectExprCallback =
-                        std::function<Variant(ObjectExpr* expr_)>;
-                
-                Variant Evaluate(Expr& expr_a,
-                                 const OnObjectExprCallback&
-                                         on_object_expr_callback_a = nullptr);
+        using OnObjectExprCallback = std::function<Variant(ObjectExpr* expr_)>;
 
-                Variant EvaluateOrDefault(
-                        Expr& expr_a,
-                        const Variant& default_value_a = {},
-                        const OnObjectExprCallback& on_object_expr_callback_a =
-                                nullptr);
+        Variant Evaluate(Expr& expr_a,
+                         const OnObjectExprCallback& on_object_expr_callback_a =
+                                 nullptr);
 
-                void Abort();
+        Variant EvaluateOrDefault(Expr& expr_a,
+                                  const Variant& default_value_a = {},
+                                  const OnObjectExprCallback&
+                                          on_object_expr_callback_a = nullptr);
 
-            private:
-                void Push(const Variant& v_a);
-                Variant Pop();
+        void Abort();
 
-                void SetObjectExprCallback(
-                        const OnObjectExprCallback& callback_a);
+    private:
+        void Push(const Variant& v_a);
+        Variant Pop();
 
-                Variant EvaluateBinaryOp(const BinaryExpr* ast_a,
-                                         Variant lhs_a,
-                                         Variant rhs_a);
-                
-                Variant EvaluateUnaryOp(const UnaryExpr* ast_a, Variant rhs_a);
+        void SetObjectExprCallback(const OnObjectExprCallback& callback_a);
 
-                DECL_VISIT_PROC(NullExpr);
-                DECL_VISIT_PROC(SequenceExpr);
-                DECL_VISIT_PROC(LiteralExpr);
-                DECL_VISIT_PROC(TypeSpecifierExpr);
-                DECL_VISIT_PROC(TernaryExpr);
-                DECL_VISIT_PROC(BinaryExpr);
-                DECL_VISIT_PROC(UnaryExpr);
-                DECL_VISIT_PROC(PostUnaryExpr);
-                DECL_VISIT_PROC(CallExpr);
-                DECL_VISIT_PROC(BracketExpr);
-                DECL_VISIT_PROC(AssignExpr);
-                DECL_VISIT_PROC(ObjectExpr);
-                DECL_VISIT_PROC(ArrayExpr);
-                DECL_VISIT_PROC(CastExpr);
-                DECL_VISIT_PROC(InitializerExpr);
+        Variant EvaluateBinaryOp(const BinaryExpr* ast_a,
+                                 Variant lhs_a,
+                                 Variant rhs_a);
 
-            private:
-                std::stack<Variant> variant_stack_;
-                OnObjectExprCallback on_object_expr_callback_;
+        Variant EvaluateUnaryOp(const UnaryExpr* ast_a, Variant rhs_a);
 
-                bool throw_on_failure_ = true;
-                bool abort_ = false;
+        DECL_VISIT_PROC(NullExpr);
+        DECL_VISIT_PROC(SequenceExpr);
+        DECL_VISIT_PROC(LiteralExpr);
+        DECL_VISIT_PROC(TypeSpecifierExpr);
+        DECL_VISIT_PROC(TernaryExpr);
+        DECL_VISIT_PROC(BinaryExpr);
+        DECL_VISIT_PROC(UnaryExpr);
+        DECL_VISIT_PROC(PostUnaryExpr);
+        DECL_VISIT_PROC(CallExpr);
+        DECL_VISIT_PROC(BracketExpr);
+        DECL_VISIT_PROC(AssignExpr);
+        DECL_VISIT_PROC(ObjectExpr);
+        DECL_VISIT_PROC(ArrayExpr);
+        DECL_VISIT_PROC(CastExpr);
+        DECL_VISIT_PROC(InitializerExpr);
 
-                Flags flags_;
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    private:
+        std::stack<Variant> variant_stack_;
+        OnObjectExprCallback on_object_expr_callback_;
+
+        bool throw_on_failure_ = true;
+        bool abort_ = false;
+
+        Flags flags_;
+    };
+} // namespace OL
+#endif

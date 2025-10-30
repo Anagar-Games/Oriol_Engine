@@ -3,176 +3,166 @@
 #include "../../Report/ReportIdents.hpp"
 #include "../AST.hpp"
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    bool VisitorTracker::InsideGlobalScope() const
     {
-        namespace ShaderPack
+        return (!InsideFunctionDecl() && !InsideStructDecl()
+                && !InsideUniformBufferDecl() && !InsideVarDeclStmnt());
+    }
+
+    void VisitorTracker::PushFunctionDecl(FunctionDecl* func_decl_a)
+    {
+        func_decl_stack_.push(func_decl_a);
+        if (func_decl_a->flags_(FunctionDecl::IsEntryPoint))
+            stack_level_of_entry_point_ = func_decl_stack_.size();
+
+        else if (func_decl_a->flags_(FunctionDecl::IsSecondaryEntryPoint))
+            stack_level_of_2nd_entry_point_ = func_decl_stack_.size();
+    }
+
+    void VisitorTracker::PopFunctionDecl()
+    {
+        if (!func_decl_stack_.empty())
         {
-            bool VisitorTracker::InsideGlobalScope() const
-            {
-                return (!InsideFunctionDecl() && !InsideStructDecl()
-                        && !InsideUniformBufferDecl() && !InsideVarDeclStmnt());
-            }
+            if (stack_level_of_entry_point_ == func_decl_stack_.size())
+                stack_level_of_entry_point_ = (std::size_t)~0;
+            if (stack_level_of_2nd_entry_point_ == func_decl_stack_.size())
+                stack_level_of_2nd_entry_point_ = (std::size_t)~0;
+            func_decl_stack_.pop();
+        } else
+            throw std::underflow_error(R_FuncDeclStackUnderflow);
+    }
 
-            void VisitorTracker::PushFunctionDecl(FunctionDecl* func_decl_a)
-            {
-                func_decl_stack_.push(func_decl_a);
-                if (func_decl_a->flags_(FunctionDecl::IsEntryPoint))
-                    stack_level_of_entry_point_ = func_decl_stack_.size();
-                
-                else if (func_decl_a->flags_(FunctionDecl::IsSecondaryEntryPoint))
-                    stack_level_of_2nd_entry_point_ = func_decl_stack_.size();
-            }
+    bool VisitorTracker::InsideFunctionDecl() const
+    {
+        return (!func_decl_stack_.empty());
+    }
 
-            void VisitorTracker::PopFunctionDecl()
-            {
-                if (!func_decl_stack_.empty())
-                {
-                    if (stack_level_of_entry_point_ == func_decl_stack_.size())
-                        stack_level_of_entry_point_ = (std::size_t)~0;
-                    if (stack_level_of_2nd_entry_point_ == func_decl_stack_.size())
-                        stack_level_of_2nd_entry_point_ = (std::size_t)~0;
-                    func_decl_stack_.pop();
-                } 
-                else
-                    throw std::underflow_error(R_FuncDeclStackUnderflow);
-            }
+    bool VisitorTracker::InsideEntryPoint() const
+    {
+        return (func_decl_stack_.size() >= stack_level_of_entry_point_);
+    }
 
-            bool VisitorTracker::InsideFunctionDecl() const
-            {
-                return (!func_decl_stack_.empty());
-            }
+    bool VisitorTracker::InsideSecondaryEntryPoint() const
+    {
+        return (func_decl_stack_.size() >= stack_level_of_2nd_entry_point_);
+    }
 
-            bool VisitorTracker::InsideEntryPoint() const
-            {
-                return (func_decl_stack_.size() >= stack_level_of_entry_point_);
-            }
+    FunctionDecl* VisitorTracker::ActiveFunctionDecl() const
+    {
+        return (func_decl_stack_.empty() ? nullptr : func_decl_stack_.top());
+    }
 
-            bool VisitorTracker::InsideSecondaryEntryPoint() const
-            {
-                return (func_decl_stack_.size() >= stack_level_of_2nd_entry_point_);
-            }
+    StructDecl* VisitorTracker::ActiveFunctionStructDecl() const
+    {
+        if (auto func_decl_ = ActiveFunctionDecl())
+            return func_decl_->struct_decl_ref_;
+        else
+            return nullptr;
+    }
 
-            FunctionDecl* VisitorTracker::ActiveFunctionDecl() const
-            {
-                return (func_decl_stack_.empty() ? nullptr
-                                               : func_decl_stack_.top());
-            }
+    void VisitorTracker::PushCallExpr(CallExpr* call_expr_a)
+    {
+        call_expr_stack_.push(call_expr_a);
+    }
 
-            StructDecl* VisitorTracker::ActiveFunctionStructDecl() const
-            {
-                if (auto func_decl_ = ActiveFunctionDecl())
-                    return func_decl_->struct_decl_ref_;
-                else
-                    return nullptr;
-            }
+    void VisitorTracker::PopCallExpr()
+    {
+        if (!call_expr_stack_.empty())
+            call_expr_stack_.pop();
+        else
+            throw std::underflow_error(R_CallExprStackUnderflow);
+    }
 
-            void VisitorTracker::PushCallExpr(CallExpr* call_expr_a)
-            {
-                call_expr_stack_.push(call_expr_a);
-            }
+    CallExpr* VisitorTracker::ActiveCallExpr() const
+    {
+        return (call_expr_stack_.empty() ? nullptr : call_expr_stack_.top());
+    }
 
-            void VisitorTracker::PopCallExpr()
-            {
-                if (!call_expr_stack_.empty())
-                    call_expr_stack_.pop();
-                else
-                    throw std::underflow_error(R_CallExprStackUnderflow);
-            }
+    void VisitorTracker::PushLValueExpr(Expr* expr_a)
+    {
+        lvalue_expr_stack_.push(expr_a);
+    }
 
-            CallExpr* VisitorTracker::ActiveCallExpr() const
-            {
-                return (call_expr_stack_.empty() ? nullptr
-                                               : call_expr_stack_.top());
-            }
+    void VisitorTracker::PopLValueExpr()
+    {
+        if (!lvalue_expr_stack_.empty())
+            lvalue_expr_stack_.pop();
+        else
+            throw std::runtime_error(R_LValueExprStackUnderflow);
+    }
 
-            void VisitorTracker::PushLValueExpr(Expr* expr_a)
-            {
-                lvalue_expr_stack_.push(expr_a);
-            }
+    Expr* VisitorTracker::ActiveLValueExpr() const
+    {
+        return (lvalue_expr_stack_.empty() ? nullptr
+                                           : lvalue_expr_stack_.top());
+    }
 
-            void VisitorTracker::PopLValueExpr()
-            {
-                if (!lvalue_expr_stack_.empty())
-                    lvalue_expr_stack_.pop();
-                else
-                    throw std::runtime_error(R_LValueExprStackUnderflow);
-            }
+    void VisitorTracker::PushStructDecl(StructDecl* struct_decl_a)
+    {
+        struct_decl_stack_.push_back(struct_decl_a);
+    }
 
-            Expr* VisitorTracker::ActiveLValueExpr() const
-            {
-                return (lvalue_expr_stack_.empty() ? nullptr
-                                                 : lvalue_expr_stack_.top());
-            }
+    void VisitorTracker::PopStructDecl()
+    {
+        if (!struct_decl_stack_.empty())
+            struct_decl_stack_.pop_back();
+        else
+            throw std::underflow_error(R_StructDeclStackUnderflow);
+    }
 
-            void VisitorTracker::PushStructDecl(StructDecl* struct_decl_a)
-            {
-                struct_decl_stack_.push_back(struct_decl_a);
-            }
+    bool VisitorTracker::InsideStructDecl() const
+    {
+        return (!struct_decl_stack_.empty());
+    }
 
-            void VisitorTracker::PopStructDecl()
-            {
-                if (!struct_decl_stack_.empty())
-                    struct_decl_stack_.pop_back();
-                else
-                    throw std::underflow_error(R_StructDeclStackUnderflow);
-            }
+    StructDecl* VisitorTracker::ActiveStructDecl() const
+    {
+        return (struct_decl_stack_.empty() ? nullptr
+                                           : struct_decl_stack_.back());
+    }
 
-            bool VisitorTracker::InsideStructDecl() const
-            {
-                return (!struct_decl_stack_.empty());
-            }
+    void VisitorTracker::PushUniformBufferDecl(
+            UniformBufferDecl* uniform_buffer_decl_a)
+    {
+        uniform_buffer_decl_stack_.push_back(uniform_buffer_decl_a);
+    }
 
-            StructDecl* VisitorTracker::ActiveStructDecl() const
-            {
-                return (struct_decl_stack_.empty() ? nullptr
-                                                 : struct_decl_stack_.back());
-            }
+    void VisitorTracker::PopUniformBufferDecl()
+    {
+        if (!uniform_buffer_decl_stack_.empty())
+            uniform_buffer_decl_stack_.pop_back();
+        else
+            throw std::underflow_error(R_UniformBufferDeclStackUnderflow);
+    }
 
-            void VisitorTracker::PushUniformBufferDecl(
-                    UniformBufferDecl* uniform_buffer_decl_a)
-            {
-                uniform_buffer_decl_stack_.push_back(uniform_buffer_decl_a);
-            }
+    bool VisitorTracker::InsideUniformBufferDecl() const
+    {
+        return (!uniform_buffer_decl_stack_.empty());
+    }
 
-            void VisitorTracker::PopUniformBufferDecl()
-            {
-                if (!uniform_buffer_decl_stack_.empty())
-                    uniform_buffer_decl_stack_.pop_back();
-                else
-                    throw std::underflow_error(
-                            R_UniformBufferDeclStackUnderflow);
-            }
+    void VisitorTracker::PushVarDeclStmnt(VarDeclStmnt* var_decl_stmnt_a)
+    {
+        var_decl_stmnt_stack_.push(var_decl_stmnt_a);
+    }
 
-            bool VisitorTracker::InsideUniformBufferDecl() const
-            {
-                return (!uniform_buffer_decl_stack_.empty());
-            }
+    void VisitorTracker::PopVarDeclStmnt()
+    {
+        if (!var_decl_stmnt_stack_.empty())
+            var_decl_stmnt_stack_.pop();
+        else
+            throw std::underflow_error(R_VarDeclStmntStackUnderflow);
+    }
 
-            void VisitorTracker::PushVarDeclStmnt(VarDeclStmnt* var_decl_stmnt_a)
-            {
-                var_decl_stmnt_stack_.push(var_decl_stmnt_a);
-            }
+    bool VisitorTracker::InsideVarDeclStmnt() const
+    {
+        return (!var_decl_stmnt_stack_.empty());
+    }
 
-            void VisitorTracker::PopVarDeclStmnt()
-            {
-                if (!var_decl_stmnt_stack_.empty())
-                    var_decl_stmnt_stack_.pop();
-                else
-                    throw std::underflow_error(R_VarDeclStmntStackUnderflow);
-            }
-
-            bool VisitorTracker::InsideVarDeclStmnt() const
-            {
-                return (!var_decl_stmnt_stack_.empty());
-            }
-
-            VarDeclStmnt* VisitorTracker::ActiveVarDeclStmnt() const
-            {
-                return (var_decl_stmnt_stack_.empty() ? nullptr
-                                                   : var_decl_stmnt_stack_.top());
-            }
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    VarDeclStmnt* VisitorTracker::ActiveVarDeclStmnt() const
+    {
+        return (var_decl_stmnt_stack_.empty() ? nullptr
+                                              : var_decl_stmnt_stack_.top());
+    }
+} // namespace OL

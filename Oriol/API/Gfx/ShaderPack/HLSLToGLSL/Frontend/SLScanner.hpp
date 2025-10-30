@@ -1,34 +1,31 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_SLSCANNER_HPP
+#define OL_SLSCANNER_HPP
+
 #include "Scanner.hpp"
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class SLScanner : public Scanner
     {
-        namespace ShaderPack
-        {
-            class SLScanner : public Scanner
-            {
-            public:
-                SLScanner(Log* log_a = nullptr);
+    public:
+        SLScanner(Log* log_a = nullptr);
 
-                TokenPtr Next() override;
+        TokenPtr Next() override;
 
-            protected:
-                virtual TokenPtr ScanIdentifierOrKeyword(
-                        std::string&& spell_a) = 0;
+    protected:
+        virtual TokenPtr ScanIdentifierOrKeyword(std::string&& spell_a) = 0;
 
-            private:
-                TokenPtr ScanToken() override;
+    private:
+        TokenPtr ScanToken() override;
 
-                TokenPtr ScanDirective();
-                TokenPtr ScanIdentifier();
-                TokenPtr ScanAssignShiftRelationOp(const char chr_a);
-                TokenPtr ScanPlusOp();
-                TokenPtr ScanMinusOp();
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+        TokenPtr ScanDirective();
+        TokenPtr ScanIdentifier();
+        TokenPtr ScanAssignShiftRelationOp(const char chr_a);
+        TokenPtr ScanPlusOp();
+        TokenPtr ScanMinusOp();
+    };
+} // namespace OL
+#endif

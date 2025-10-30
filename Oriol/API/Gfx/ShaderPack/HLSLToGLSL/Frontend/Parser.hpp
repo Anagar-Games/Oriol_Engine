@@ -1,6 +1,9 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_PARSER_HPP
+#define OL_PARSER_HPP
+
 #include "../AST/AST.hpp"
 #include "../AST/ASTEnums.hpp"
 #include "../AST/Token.hpp"
@@ -15,216 +18,209 @@
 #include <string>
 #include <vector>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class Parser
     {
-        namespace ShaderPack
+    public:
+        virtual ~Parser() = default;
+
+    protected:
+        using Tokens = Token::Types;
+        using BinaryOpList = std::initializer_list<BinaryOp>;
+
+        struct ParsingState
         {
-            class Parser
-            {
-            public:
-                virtual ~Parser() = default;
+            bool active_template_;
+        };
 
-            protected:
-                using Tokens = Token::Types;
-                using BinaryOpList = std::initializer_list<BinaryOp>;
+        Parser(Log* log_a);
 
-                struct ParsingState
-                {
-                    bool active_template_;
-                };
+        void Error(const std::string& msg_a,
+                   const SourceArea& area_a,
+                   bool break_with_expection_a = true);
 
-                Parser(Log* log_a);
+        void Error(const std::string& msg_a,
+                   const Token* tkn_a,
+                   bool break_with_expection_a = true);
 
-                void Error(const std::string& msg_a,
-                           const SourceArea& area_a,
-                           bool break_with_expection_a = true);
+        void Error(const std::string& msg_a,
+                   bool prev_token_a = true,
+                   bool break_with_expection_a = true);
 
-                void Error(const std::string& msg_a,
-                           const Token* tkn_a,
-                           bool break_with_expection_a = true);
+        void ErrorUnexpected(const std::string& hint_a = "",
+                             const Token* tkn_a = nullptr,
+                             bool break_with_expection_a = false);
 
-                void Error(const std::string& msg_a,
-                           bool prev_token_a = true,
-                           bool break_with_expection_a = true);
+        void ErrorUnexpected(const Tokens type_a,
+                             const Token* tkn_a = nullptr,
+                             bool break_with_expection_a = false);
 
-                void ErrorUnexpected(const std::string& hint_a = "",
-                                     const Token* tkn_a = nullptr,
-                                     bool break_with_expection_a = false);
+        void ErrorInternal(const std::string& msg_a,
+                           const std::string& proc_name_a);
 
-                void ErrorUnexpected(const Tokens type_a,
-                                     const Token* tkn_a = nullptr,
-                                     bool break_with_expection_a = false);
+        void Warning(const std::string& msg_a, const SourceArea& area_a);
+        void Warning(const std::string& msg_a, const Token* tkn_a);
+        void Warning(const std::string& msg_a, bool prev_token_a = true);
 
-                void ErrorInternal(const std::string& msg_a,
-                                   const std::string& proc_name_a);
+        void EnableWarnings(bool enable_a);
 
-                void Warning(const std::string& msg_a, const SourceArea& area_a);
-                void Warning(const std::string& msg_a, const Token* tkn_a);
-                void Warning(const std::string& msg_a, bool prev_token_a = true);
+        virtual ScannerPtr MakeScanner() = 0;
 
-                void EnableWarnings(bool enable_a);
+        virtual void PushScannerSource(const SourceCodePtr& source_a,
+                                       const std::string& filename_a = "");
 
-                virtual ScannerPtr MakeScanner() = 0;
+        virtual bool PopScannerSource();
 
-                virtual void PushScannerSource(
-                        const SourceCodePtr& source_a,
-                        const std::string& filename_a = "");
+        ParsingState ActiveParsingState() const;
 
-                virtual bool PopScannerSource();
+        Scanner& GetScanner();
+        std::string GetCurrentFilename() const;
 
-                ParsingState ActiveParsingState() const;
+        TokenPtr Accept(const Tokens type_a);
+        TokenPtr Accept(const Tokens type_a, const std::string& spell_a);
+        virtual TokenPtr AcceptIt();
 
-                Scanner& GetScanner();
-                std::string GetCurrentFilename() const;
+        void PushTokenString(const TokenPtrString& token_string_a);
+        void PopTokenString();
 
-                TokenPtr Accept(const Tokens type_a);
-                TokenPtr Accept(const Tokens type_a, const std::string& spell_a);
-                virtual TokenPtr AcceptIt();
+        void IgnoreWhiteSpaces(bool include_new_lines_a = false,
+                               bool include_comments_a = false);
+        void IgnoreNewLines();
 
-                void PushTokenString(const TokenPtrString& token_string_a);
-                void PopTokenString();
+        template <typename T>
+        const T& UpdateSourceArea(const T& ast_a,
+                                  const AST* area_origin_ast_a = nullptr)
+        {
+            if (area_origin_ast_a)
+                ast_a->area_ = area_origin_ast_a->area_;
+            ast_a->area_.Update(GetScanner().PreviousToken()->Area());
+            return ast_a;
+        }
 
-                void IgnoreWhiteSpaces(bool include_new_lines_a = false,
-                                       bool include_comments_a = false);
-                void IgnoreNewLines();
+        template <typename T>
+        const T& UpdateSourceArea(const T& ast_a,
+                                  const ASTPtr& first_area_origin_ast_a,
+                                  const ASTPtr& last_area_origin_ast_a)
+        {
+            ast_a->area_ = first_area_origin_ast_a->area_;
+            ast_a->area_.Update(*last_area_origin_ast_a);
+            return ast_a;
+        }
 
-                template <typename T>
-                const T& UpdateSourceArea(const T& ast_a,
-                                          const AST* area_origin_ast_a = nullptr)
-                {
-                    if (area_origin_ast_a)
-                        ast_a->area_ = area_origin_ast_a->area_;
-                    ast_a->area_.Update(GetScanner().PreviousToken()->Area());
-                    return ast_a;
-                }
+        template <typename T>
+        const T& UpdateSourceAreaOffset(const T& ast_a)
+        {
+            ast_a->area_.Offset(GetScanner().PreviousToken()->Pos());
+            return ast_a;
+        }
 
-                template <typename T>
-                const T& UpdateSourceArea(const T& ast_a,
-                                          const ASTPtr& first_area_origin_ast_a,
-                                          const ASTPtr& last_area_origin_ast_a)
-                {
-                    ast_a->area_ = first_area_origin_ast_a->area_;
-                    ast_a->area_.Update(*last_area_origin_ast_a);
-                    return ast_a;
-                }
+        void PushParsingState(const ParsingState& state_a);
+        void PopParsingState();
 
-                template <typename T>
-                const T& UpdateSourceAreaOffset(const T& ast_a)
-                {
-                    ast_a->area_.Offset(GetScanner().PreviousToken()->Pos());
-                    return ast_a;
-                }
+        void PushPreParsedAST(const ASTPtr& ast_a);
+        ASTPtr PopPreParsedAST();
 
-                void PushParsingState(const ParsingState& state_a);
-                void PopParsingState();
+        ExprPtr ParseGenericExpr();
+        TernaryExprPtr ParseTernaryExpr(const ExprPtr& cond_expr_a);
 
-                void PushPreParsedAST(const ASTPtr& ast_a);
-                ASTPtr PopPreParsedAST();
+        ExprPtr ParseLogicOrExpr();
+        ExprPtr ParseLogicAndExpr();
+        ExprPtr ParseBitwiseOrExpr();
+        ExprPtr ParseBitwiseXOrExpr();
+        ExprPtr ParseBitwiseAndExpr();
+        ExprPtr ParseEqualityExpr();
+        ExprPtr ParseRelationExpr();
+        ExprPtr ParseShiftExpr();
+        ExprPtr ParseAddExpr();
+        ExprPtr ParseSubExpr();
+        ExprPtr ParseMulExpr();
+        ExprPtr ParseDivExpr();
+        ExprPtr ParseValueExpr();
 
-                ExprPtr ParseGenericExpr();
-                TernaryExprPtr ParseTernaryExpr(const ExprPtr& cond_expr_a);
+        virtual ExprPtr ParsePrimaryExpr() = 0;
 
-                ExprPtr ParseLogicOrExpr();
-                ExprPtr ParseLogicAndExpr();
-                ExprPtr ParseBitwiseOrExpr();
-                ExprPtr ParseBitwiseXOrExpr();
-                ExprPtr ParseBitwiseAndExpr();
-                ExprPtr ParseEqualityExpr();
-                ExprPtr ParseRelationExpr();
-                ExprPtr ParseShiftExpr();
-                ExprPtr ParseAddExpr();
-                ExprPtr ParseSubExpr();
-                ExprPtr ParseMulExpr();
-                ExprPtr ParseDivExpr();
-                ExprPtr ParseValueExpr();
+        int ParseIntLiteral(TokenPtr tkn_a = nullptr);
+        int ParseIntLiteral(const std::string& value_str_a,
+                            const Token* tkn_a = nullptr);
 
-                virtual ExprPtr ParsePrAzaryExpr() = 0;
+        inline Log* GetLog() const
+        {
+            return log_;
+        }
 
-                int ParseIntLiteral(TokenPtr tkn_a = nullptr);
-                int ParseIntLiteral(const std::string& value_str_a,
-                                    const Token* tkn_a = nullptr);
+        inline ReportHandler& GetReportHandler()
+        {
+            return report_handler_;
+        }
 
-                inline Log* GetLog() const
-                {
-                    return log_;
-                }
+        inline NameMangling& GetNameMangling()
+        {
+            return name_mangling_;
+        }
 
-                inline ReportHandler& GetReportHandler()
-                {
-                    return report_handler_;
-                }
+        const std::string* FindNameManglingPrefix(
+                const std::string& ident_a) const;
 
-                inline NameMangling& GetNameMangling()
-                {
-                    return name_mangling_;
-                }
+        template <typename T, typename... Args>
+        std::shared_ptr<T> Make(Args&&... args_a)
+        {
+            return std::make_shared<T>(GetScanner().Pos(),
+                                       std::forward<Args>(args_a)...);
+        }
 
-                const std::string* FindNameManglingPrefix(
-                        const std::string& ident_a) const;
+        inline const TokenPtr& Tkn() const
+        {
+            return tkn_;
+        }
 
-                template <typename T, typename... Args>
-                std::shared_ptr<T> Make(Args&&... args_a)
-                {
-                    return std::make_shared<T>(GetScanner().Pos(),
-                                               std::forward<Args>(args_a)...);
-                }
+        inline Tokens TknType() const
+        {
+            return Tkn()->Type();
+        }
 
-                inline const TokenPtr& Tkn() const
-                {
-                    return tkn_;
-                }
+        inline bool Is(const Tokens type_a) const
+        {
+            return (TknType() == type_a);
+        }
 
-                inline Tokens TknType() const
-                {
-                    return Tkn()->Type();
-                }
+        inline bool Is(const Tokens type_a, const std::string& spell_a) const
+        {
+            return (TknType() == type_a && Tkn()->Spell() == spell_a);
+        }
 
-                inline bool Is(const Tokens type_a) const
-                {
-                    return (TknType() == type_a);
-                }
+    private:
+        struct ScannerStackEntry
+        {
+            ScannerPtr scanner_;
+            std::string filename_;
+            TokenPtr next_token_;
+        };
 
-                inline bool Is(const Tokens type_a,
-                               const std::string& spell_a) const
-                {
-                    return (TknType() == type_a && Tkn()->Spell() == spell_a);
-                }
+        ExprPtr ParseLTRBinaryExpr(
+                const std::function<ExprPtr()>& parse_sub_expr_func_a,
+                const BinaryOpList& binary_ops_a);
 
-            private:
-                struct ScannerStackEntry
-                {
-                    ScannerPtr scanner_;
-                    std::string filename_;
-                    TokenPtr next_token_;
-                };
+        void IncUnexpectedTokenCounter();
 
-                ExprPtr ParseLTRBinaryExpr(
-                        const std::function<ExprPtr()>& parse_sub_expr_func_a,
-                        const BinaryOpList& binary_ops_a);
+        void AssertTokenType(const Tokens type_a);
+        void AssertTokenSpell(const std::string& spell_a);
 
-                void IncUnexpectedTokenCounter();
+    private:
+        ReportHandler report_handler_;
+        NameMangling name_mangling_;
 
-                void AssertTokenType(const Tokens type_a);
-                void AssertTokenSpell(const std::string& spell_a);
+        Log* log_ = nullptr;
+        TokenPtr tkn_;
 
-            private:
-                ReportHandler report_handler_;
-                NameMangling name_mangling_;
+        std::stack<ScannerStackEntry> scanner_stack_;
+        std::stack<ParsingState> parsing_state_stack_;
+        std::stack<ASTPtr> pre_parsed_ast_stack_;
 
-                Log* log_ = nullptr;
-                TokenPtr tkn_;
+        unsigned int unexpected_token_counter_ = 0;
+        const unsigned int unexpected_token_limit_ = 3;
 
-                std::stack<ScannerStackEntry> scanner_stack_;
-                std::stack<ParsingState> parsing_state_stack_;
-                std::stack<ASTPtr> pre_parsed_ast_stack_;
-
-                unsigned int unexpected_token_counter_ = 0;
-                const unsigned int unexpected_token_lAzit_ = 3;
-
-                bool enable_warnings_ = false;
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+        bool enable_warnings_ = false;
+    };
+} // namespace OL
+#endif

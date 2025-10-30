@@ -1,6 +1,9 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef TYPEDENOTER_HPP
+#define TYPEDENOTER_HPP
+
 #include "../AST/Visitor/Visitor.hpp"
 #include "../CiString.hpp"
 #include "../Flags.hpp"
@@ -9,389 +12,378 @@
 #include <memory>
 #include <string>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
-    {
-        namespace ShaderPack
-        {
 #define DECL_PTR(CLASS_NAME)                                                   \
     struct CLASS_NAME;                                                         \
     using CLASS_NAME##Ptr = std::shared_ptr<CLASS_NAME>
 
-            DECL_PTR(TypeDenoter);
-            DECL_PTR(VoidTypeDenoter);
-            DECL_PTR(NullTypeDenoter);
-            DECL_PTR(BaseTypeDenoter);
-            DECL_PTR(BufferTypeDenoter);
-            DECL_PTR(SamplerTypeDenoter);
-            DECL_PTR(StructTypeDenoter);
-            DECL_PTR(AliasTypeDenoter);
-            DECL_PTR(ArrayTypeDenoter);
-            DECL_PTR(FunctionTypeDenoter);
+    DECL_PTR(TypeDenoter);
+    DECL_PTR(VoidTypeDenoter);
+    DECL_PTR(NullTypeDenoter);
+    DECL_PTR(BaseTypeDenoter);
+    DECL_PTR(BufferTypeDenoter);
+    DECL_PTR(SamplerTypeDenoter);
+    DECL_PTR(StructTypeDenoter);
+    DECL_PTR(AliasTypeDenoter);
+    DECL_PTR(ArrayTypeDenoter);
+    DECL_PTR(FunctionTypeDenoter);
 
 #undef DECL_PTR
 
-            struct TypeDenoter : std::enable_shared_from_this<TypeDenoter>
-            {
-                enum class Types
-                {
-                    Void,
-                    Null,
-                    Base,
-                    Buffer,
-                    Sampler,
-                    Struct,
-                    Alias,
-                    Array,
-                    Function,
-                };
-
-                enum : unsigned int
-                {
-                    IgnoreGenericSubType = (1 << 0),
-                };
-
-                virtual ~TypeDenoter();
-                virtual Types Type() const = 0;
-                virtual std::string ToString() const = 0;
-                virtual TypeDenoterPtr Copy() const = 0;
-                virtual bool Equals(const TypeDenoter& rhs_a,
-                                    const Flags& compare_flags_a = 0) const;
-               
-                virtual bool IsCastableTo(const TypeDenoter& target_type_a) const;
-                virtual bool AccumAlignedVectorSize(
-                        unsigned int& size_a,
-                        unsigned int& padding_a,
-                        unsigned int* offset_a = nullptr) const;
-
-                bool IsVoid() const;
-                bool IsNull() const;
-                bool IsBase() const;
-                bool IsScalar() const;
-                bool IsVector() const;
-                bool IsMatrix() const;
-                bool IsSampler() const;
-                bool IsBuffer() const;
-                bool IsStruct() const;
-                bool IsAlias() const;
-                bool IsArray() const;
-                bool IsFunction() const;
-
-                template <typename T>
-                T* As()
-                {
-                    return (Type() == T::class_type_ ? static_cast<T*>(this)
-                                                   : nullptr);
-                }
-
-                template <typename T>
-                const T* As() const
-                {
-                    return (Type() == T::class_type_ ? static_cast<const T*>(this)
-                                                   : nullptr);
-                }
-
-                virtual TypeDenoterPtr GetSub(const Expr* expr_a = nullptr);
-                virtual TypeDenoterPtr GetSubObject(const std::string& ident_a,
-                                                    const AST* ast_a = nullptr);
-                virtual TypeDenoterPtr GetSubArray(
-                        const std::size_t num_array_indices_a,
-                        const AST* ast_a = nullptr);
-                
-                virtual const TypeDenoter& GetAliased() const;
-                virtual std::string Ident() const;
-
-                virtual void SetIdentIfAnonymous(const std::string& ident_a);
-                virtual unsigned int NumDAzensions() const;
-                virtual AST* SymbolRef() const;
-                virtual TypeDenoterPtr AsArray(
-                        const std::vector<ArrayDAzensionPtr>& array_dAzs_a);
-                virtual TypeDenoter* FetchSubTypeDenoter() const;
-
-                static TypeDenoterPtr FindCommonTypeDenoter(
-                        const TypeDenoterPtr& lhs_type_den_a,
-                        const TypeDenoterPtr& rhs_type_den_a,
-                        bool use_min_dAzension_a = false);
-                
-                static TypeDenoterPtr FindCommonTypeDenoterFrom(
-                        const ExprPtr& lhs_expr_a,
-                        const ExprPtr& rhs_expr_a,
-                        bool use_min_dAzension_a = false,
-                        const AST* ast_a = nullptr);
-                
-                static BaseTypeDenoterPtr MakeBoolTypeWithDAzensionOf(
-                        const TypeDenoter& type_den_a);
-
-                static int FindVectorTruncation(
-                        const TypeDenoter& source_type_den_a,
-                        const TypeDenoter& dest_type_den_a,
-                        int& source_vec_size_a,
-                        int& dest_vec_size_a);
-            };
-
-            struct VoidTypeDenoter : public TypeDenoter
-            {
-                static const Types class_type_ = Types::Void;
+    struct TypeDenoter : std::enable_shared_from_this<TypeDenoter>
+    {
+        enum class Types
+        {
+            Void,
+            Null,
+            Base,
+            Buffer,
+            Sampler,
+            Struct,
+            Alias,
+            Array,
+            Function,
+        };
+
+        enum : unsigned int
+        {
+            IgnoreGenericSubType = (1 << 0),
+        };
+
+        virtual ~TypeDenoter();
+        virtual Types Type() const = 0;
+        virtual std::string ToString() const = 0;
+        virtual TypeDenoterPtr Copy() const = 0;
+        virtual bool Equals(const TypeDenoter& rhs_a,
+                            const Flags& compare_flags_a = 0) const;
+
+        virtual bool IsCastableTo(const TypeDenoter& target_type_a) const;
+        virtual bool AccumAlignedVectorSize(
+                unsigned int& size_a,
+                unsigned int& padding_a,
+                unsigned int* offset_a = nullptr) const;
+
+        bool IsVoid() const;
+        bool IsNull() const;
+        bool IsBase() const;
+        bool IsScalar() const;
+        bool IsVector() const;
+        bool IsMatrix() const;
+        bool IsSampler() const;
+        bool IsBuffer() const;
+        bool IsStruct() const;
+        bool IsAlias() const;
+        bool IsArray() const;
+        bool IsFunction() const;
+
+        template <typename T>
+        T* As()
+        {
+            return (Type() == T::class_type_ ? static_cast<T*>(this) : nullptr);
+        }
+
+        template <typename T>
+        const T* As() const
+        {
+            return (Type() == T::class_type_ ? static_cast<const T*>(this)
+                                             : nullptr);
+        }
+
+        virtual TypeDenoterPtr GetSub(const Expr* expr_a = nullptr);
+        virtual TypeDenoterPtr GetSubObject(const std::string& ident_a,
+                                            const AST* ast_a = nullptr);
+        virtual TypeDenoterPtr GetSubArray(
+                const std::size_t num_array_indices_a,
+                const AST* ast_a = nullptr);
+
+        virtual const TypeDenoter& GetAliased() const;
+        virtual std::string Ident() const;
+
+        virtual void SetIdentIfAnonymous(const std::string& ident_a);
+        virtual unsigned int NumDimensions() const;
+        virtual AST* SymbolRef() const;
+        virtual TypeDenoterPtr AsArray(
+                const std::vector<ArrayDimensionPtr>& array_dims_a);
+        virtual TypeDenoter* FetchSubTypeDenoter() const;
+
+        static TypeDenoterPtr FindCommonTypeDenoter(
+                const TypeDenoterPtr& lhs_type_den_a,
+                const TypeDenoterPtr& rhs_type_den_a,
+                bool use_min_dimension_a = false);
+
+        static TypeDenoterPtr FindCommonTypeDenoterFrom(
+                const ExprPtr& lhs_expr_a,
+                const ExprPtr& rhs_expr_a,
+                bool use_min_dimension_a = false,
+                const AST* ast_a = nullptr);
+
+        static BaseTypeDenoterPtr MakeBoolTypeWithDimensionOf(
+                const TypeDenoter& type_den_a);
+
+        static int FindVectorTruncation(const TypeDenoter& source_type_den_a,
+                                        const TypeDenoter& dest_type_den_a,
+                                        int& source_vec_size_a,
+                                        int& dest_vec_size_a);
+    };
+
+    struct VoidTypeDenoter : public TypeDenoter
+    {
+        static const Types class_type_ = Types::Void;
+
+        Types Type() const override;
+        std::string ToString() const override;
+        TypeDenoterPtr Copy() const override;
 
-                Types Type() const override;
-                std::string ToString() const override;
-                TypeDenoterPtr Copy() const override;
+        bool IsCastableTo(const TypeDenoter& target_type_a) const override;
+    };
 
-                bool IsCastableTo(const TypeDenoter& target_type_a) const override;
-            };
+    struct NullTypeDenoter : public TypeDenoter
+    {
+        static const Types class_type_ = Types::Null;
 
-            struct NullTypeDenoter : public TypeDenoter
-            {
-                static const Types class_type_ = Types::Null;
+        Types Type() const override;
+        std::string ToString() const override;
+        TypeDenoterPtr Copy() const override;
 
-                Types Type() const override;
-                std::string ToString() const override;
-                TypeDenoterPtr Copy() const override;
+        bool IsCastableTo(const TypeDenoter& target_type_a) const override;
+    };
 
-                bool IsCastableTo(const TypeDenoter& target_type_a) const override;
-            };
+    struct BaseTypeDenoter : public TypeDenoter
+    {
+        static const Types class_type_ = Types::Base;
 
-            struct BaseTypeDenoter : public TypeDenoter
-            {
-                static const Types class_type_ = Types::Base;
+        BaseTypeDenoter() = default;
+        BaseTypeDenoter(const DataType data_type_a);
 
-                BaseTypeDenoter() = default;
-                BaseTypeDenoter(const DataType data_type_a);
+        Types Type() const override;
+        std::string ToString() const override;
+        TypeDenoterPtr Copy() const override;
 
-                Types Type() const override;
-                std::string ToString() const override;
-                TypeDenoterPtr Copy() const override;
+        bool Equals(const TypeDenoter& rhs_a,
+                    const Flags& compare_flags_a = 0) const override;
 
-                bool Equals(const TypeDenoter& rhs_a,
-                            const Flags& compare_flags_a = 0) const override;
-                
-                bool IsCastableTo(const TypeDenoter& target_type_a) const override;
-                bool AccumAlignedVectorSize(
-                        unsigned int& size_a,
-                        unsigned int& padding_a,
-                        unsigned int* offset_a = nullptr) const override;
+        bool IsCastableTo(const TypeDenoter& target_type_a) const override;
+        bool AccumAlignedVectorSize(
+                unsigned int& size_a,
+                unsigned int& padding_a,
+                unsigned int* offset_a = nullptr) const override;
 
-                TypeDenoterPtr GetSubObject(const std::string& ident_a,
-                                            const AST* ast_a = nullptr) override;
-              
-                TypeDenoterPtr GetSubArray(const std::size_t num_array_indices_a,
-                                           const AST* ast_a = nullptr) override;
+        TypeDenoterPtr GetSubObject(const std::string& ident_a,
+                                    const AST* ast_a = nullptr) override;
 
-                DataType data_type_ = DataType::Undefined;
-            };
+        TypeDenoterPtr GetSubArray(const std::size_t num_array_indices_a,
+                                   const AST* ast_a = nullptr) override;
 
-            struct BufferTypeDenoter : public TypeDenoter
-            {
-                static const Types class_type_ = Types::Buffer;
+        DataType data_type_ = DataType::Undefined;
+    };
 
-                BufferTypeDenoter() = default;
-                BufferTypeDenoter(const BufferType buffer_type_a);
-                BufferTypeDenoter(BufferDecl* buffer_decl_ref_a);
+    struct BufferTypeDenoter : public TypeDenoter
+    {
+        static const Types class_type_ = Types::Buffer;
 
-                Types Type() const override;
-                std::string ToString() const override;
-                TypeDenoterPtr Copy() const override;
+        BufferTypeDenoter() = default;
+        BufferTypeDenoter(const BufferType buffer_type_a);
+        BufferTypeDenoter(BufferDecl* buffer_decl_ref_a);
 
-                bool Equals(const TypeDenoter& rhs_a,
-                            const Flags& compare_flags_a = 0) const override;
+        Types Type() const override;
+        std::string ToString() const override;
+        TypeDenoterPtr Copy() const override;
 
-                TypeDenoterPtr GetSubObject(const std::string& ident_a,
-                                            const AST* ast_a = nullptr) override;
-               
-                TypeDenoterPtr GetSubArray(const std::size_t num_array_indices_a,
-                                           const AST* ast_a = nullptr) override;
+        bool Equals(const TypeDenoter& rhs_a,
+                    const Flags& compare_flags_a = 0) const override;
 
-                AST* SymbolRef() const override;
+        TypeDenoterPtr GetSubObject(const std::string& ident_a,
+                                    const AST* ast_a = nullptr) override;
 
-                TypeDenoter* FetchSubTypeDenoter() const override;
-                TypeDenoterPtr GetGenericTypeDenoter() const;
+        TypeDenoterPtr GetSubArray(const std::size_t num_array_indices_a,
+                                   const AST* ast_a = nullptr) override;
 
-                BufferType buffer_type_ = BufferType::Undefined;
-                TypeDenoterPtr generic_type_denoter_;
-                int generic_size_ = 1;
+        AST* SymbolRef() const override;
 
-                BufferDecl* buffer_decl_ref_ = nullptr;
-            };
+        TypeDenoter* FetchSubTypeDenoter() const override;
+        TypeDenoterPtr GetGenericTypeDenoter() const;
 
-            struct SamplerTypeDenoter : public TypeDenoter
-            {
-                static const Types class_type_ = Types::Sampler;
+        BufferType buffer_type_ = BufferType::Undefined;
+        TypeDenoterPtr generic_type_denoter_;
+        int generic_size_ = 1;
 
-                SamplerTypeDenoter() = default;
-                SamplerTypeDenoter(const SamplerType sampler_type_a);
-                SamplerTypeDenoter(SamplerDecl* sampler_decl_ref_a);
+        BufferDecl* buffer_decl_ref_ = nullptr;
+    };
 
-                Types Type() const override;
-                std::string ToString() const override;
-                TypeDenoterPtr Copy() const override;
+    struct SamplerTypeDenoter : public TypeDenoter
+    {
+        static const Types class_type_ = Types::Sampler;
 
-                bool Equals(const TypeDenoter& rhs_a,
-                            const Flags& compare_flags_a = 0) const override;
+        SamplerTypeDenoter() = default;
+        SamplerTypeDenoter(const SamplerType sampler_type_a);
+        SamplerTypeDenoter(SamplerDecl* sampler_decl_ref_a);
 
-                AST* SymbolRef() const override;
+        Types Type() const override;
+        std::string ToString() const override;
+        TypeDenoterPtr Copy() const override;
 
-                SamplerType sampler_type_ = SamplerType::Undefined;
-                SamplerDecl* sampler_decl_ref_ = nullptr;
-            };
+        bool Equals(const TypeDenoter& rhs_a,
+                    const Flags& compare_flags_a = 0) const override;
 
-            struct StructTypeDenoter : public TypeDenoter
-            {
-                static const Types class_type_ = Types::Struct;
+        AST* SymbolRef() const override;
 
-                StructTypeDenoter() = default;
-                StructTypeDenoter(const std::string& ident_a);
-                StructTypeDenoter(StructDecl* struct_decl_ref_a);
+        SamplerType sampler_type_ = SamplerType::Undefined;
+        SamplerDecl* sampler_decl_ref_ = nullptr;
+    };
 
-                Types Type() const override;
-                std::string ToString() const override;
-                TypeDenoterPtr Copy() const override;
+    struct StructTypeDenoter : public TypeDenoter
+    {
+        static const Types class_type_ = Types::Struct;
 
-                void SetIdentIfAnonymous(const std::string& ident_a) override;
+        StructTypeDenoter() = default;
+        StructTypeDenoter(const std::string& ident_a);
+        StructTypeDenoter(StructDecl* struct_decl_ref_a);
 
-                bool Equals(const TypeDenoter& rhs_a,
-                            const Flags& compare_flags_a = 0) const override;
-                
-                bool IsCastableTo(const TypeDenoter& target_type_a) const override;
-                bool AccumAlignedVectorSize(
-                        unsigned int& size_a,
-                        unsigned int& padding_a,
-                        unsigned int* offset_a = nullptr) const override;
+        Types Type() const override;
+        std::string ToString() const override;
+        TypeDenoterPtr Copy() const override;
 
-                std::string Ident() const override;
+        void SetIdentIfAnonymous(const std::string& ident_a) override;
 
-                AST* SymbolRef() const override;
+        bool Equals(const TypeDenoter& rhs_a,
+                    const Flags& compare_flags_a = 0) const override;
 
-                TypeDenoterPtr GetSubObject(const std::string& ident_a,
-                                            const AST* ast_a = nullptr) override;
+        bool IsCastableTo(const TypeDenoter& target_type_a) const override;
+        bool AccumAlignedVectorSize(
+                unsigned int& size_a,
+                unsigned int& padding_a,
+                unsigned int* offset_a = nullptr) const override;
 
-                StructDecl* GetStructDeclOrThrow(
-                        const AST* ast_a = nullptr) const;
+        std::string Ident() const override;
 
-                std::string ident_;
-                StructDecl* struct_decl_ref_ = nullptr;
-            };
+        AST* SymbolRef() const override;
 
-            struct AliasTypeDenoter : public TypeDenoter
-            {
-                static const Types class_type_ = Types::Alias;
+        TypeDenoterPtr GetSubObject(const std::string& ident_a,
+                                    const AST* ast_a = nullptr) override;
 
-                AliasTypeDenoter() = default;
-                AliasTypeDenoter(const std::string& ident_a);
-                AliasTypeDenoter(AliasDecl* alias_decl_ref_a);
+        StructDecl* GetStructDeclOrThrow(const AST* ast_a = nullptr) const;
 
-                Types Type() const override;
-                std::string ToString() const override;
-                TypeDenoterPtr Copy() const override;
+        std::string ident_;
+        StructDecl* struct_decl_ref_ = nullptr;
+    };
 
-                void SetIdentIfAnonymous(const std::string& ident_a) override;
+    struct AliasTypeDenoter : public TypeDenoter
+    {
+        static const Types class_type_ = Types::Alias;
 
-                bool Equals(const TypeDenoter& rhs_a,
-                            const Flags& compare_flags_a = 0) const override;
-                bool IsCastableTo(const TypeDenoter& target_type_a) const override;
-                bool AccumAlignedVectorSize(
-                        unsigned int& size_a,
-                        unsigned int& padding_a,
-                        unsigned int* offset_a = nullptr) const override;
+        AliasTypeDenoter() = default;
+        AliasTypeDenoter(const std::string& ident_a);
+        AliasTypeDenoter(AliasDecl* alias_decl_ref_a);
 
-                std::string Ident() const override;
+        Types Type() const override;
+        std::string ToString() const override;
+        TypeDenoterPtr Copy() const override;
 
-                TypeDenoterPtr GetSub(const Expr* expr_a = nullptr) override;
-                TypeDenoterPtr GetSubObject(const std::string& ident_a,
-                                            const AST* ast_a = nullptr) override;
-                
-                TypeDenoterPtr GetSubArray(const std::size_t num_array_indices_a,
-                                           const AST* ast_a = nullptr) override;
+        void SetIdentIfAnonymous(const std::string& ident_a) override;
 
-                const TypeDenoter& GetAliased() const override;
-                const TypeDenoterPtr& GetAliasedTypeOrThrow(
-                        const AST* ast_a = nullptr) const;
+        bool Equals(const TypeDenoter& rhs_a,
+                    const Flags& compare_flags_a = 0) const override;
+        bool IsCastableTo(const TypeDenoter& target_type_a) const override;
+        bool AccumAlignedVectorSize(
+                unsigned int& size_a,
+                unsigned int& padding_a,
+                unsigned int* offset_a = nullptr) const override;
 
-                unsigned int NumDAzensions() const override;
+        std::string Ident() const override;
 
-                AST* SymbolRef() const override;
+        TypeDenoterPtr GetSub(const Expr* expr_a = nullptr) override;
+        TypeDenoterPtr GetSubObject(const std::string& ident_a,
+                                    const AST* ast_a = nullptr) override;
 
-                std::string ident_;
+        TypeDenoterPtr GetSubArray(const std::size_t num_array_indices_a,
+                                   const AST* ast_a = nullptr) override;
 
-                AliasDecl* alias_decl_ref_ = nullptr;
-            };
+        const TypeDenoter& GetAliased() const override;
+        const TypeDenoterPtr& GetAliasedTypeOrThrow(
+                const AST* ast_a = nullptr) const;
 
-            struct ArrayTypeDenoter : public TypeDenoter
-            {
-                static const Types class_type_ = Types::Array;
+        unsigned int NumDimensions() const override;
 
-                ArrayTypeDenoter() = default;
+        AST* SymbolRef() const override;
 
-                ArrayTypeDenoter(const TypeDenoterPtr& sub_type_denoter_a);
-                ArrayTypeDenoter(
-                        const TypeDenoterPtr& sub_type_denoter_a,
-                        const std::vector<ArrayDAzensionPtr>& array_dAzs_a);
+        std::string ident_;
 
-                ArrayTypeDenoter(
-                        const TypeDenoterPtr& sub_type_denoter_a,
-                        const std::vector<ArrayDAzensionPtr>& base_array_dAzs_a,
-                        const std::vector<ArrayDAzensionPtr>& sub_array_dAzs_a);
+        AliasDecl* alias_decl_ref_ = nullptr;
+    };
 
-                Types Type() const override;
+    struct ArrayTypeDenoter : public TypeDenoter
+    {
+        static const Types class_type_ = Types::Array;
 
-                std::string ToString() const override;
+        ArrayTypeDenoter() = default;
 
-                TypeDenoterPtr Copy() const override;
-                TypeDenoterPtr GetSubArray(const std::size_t num_array_indices_a,
-                                           const AST* ast_a = nullptr) override;
+        ArrayTypeDenoter(const TypeDenoterPtr& sub_type_denoter_a);
+        ArrayTypeDenoter(const TypeDenoterPtr& sub_type_denoter_a,
+                         const std::vector<ArrayDimensionPtr>& array_dims_a);
 
-                bool Equals(const TypeDenoter& rhs_a,
-                            const Flags& compare_flags_a = 0) const override;
-               
-                bool IsCastableTo(const TypeDenoter& target_type_a) const override;
-                bool AccumAlignedVectorSize(
-                        unsigned int& size_a,
-                        unsigned int& padding_a,
-                        unsigned int* offset_a = nullptr) const override;
+        ArrayTypeDenoter(
+                const TypeDenoterPtr& sub_type_denoter_a,
+                const std::vector<ArrayDimensionPtr>& base_array_dims_a,
+                const std::vector<ArrayDimensionPtr>& sub_array_dims_a);
 
-                unsigned int NumDAzensions() const override;
-                AST* SymbolRef() const override;
+        Types Type() const override;
 
-                bool EqualsDAzensions(const ArrayTypeDenoter& rhs_a) const;
+        std::string ToString() const override;
 
-                TypeDenoterPtr AsArray(const std::vector<ArrayDAzensionPtr>&
-                                               sub_array_dAzs_a) override;
-                
-                TypeDenoter* FetchSubTypeDenoter() const override;
-                void InsertSubArray(
-                        const ArrayTypeDenoter& sub_array_type_denoter_a);
+        TypeDenoterPtr Copy() const override;
+        TypeDenoterPtr GetSubArray(const std::size_t num_array_indices_a,
+                                   const AST* ast_a = nullptr) override;
 
-                std::vector<int> GetDAzensionSizes() const;
+        bool Equals(const TypeDenoter& rhs_a,
+                    const Flags& compare_flags_a = 0) const override;
 
-                int NumArrayElements() const;
+        bool IsCastableTo(const TypeDenoter& target_type_a) const override;
+        bool AccumAlignedVectorSize(
+                unsigned int& size_a,
+                unsigned int& padding_a,
+                unsigned int* offset_a = nullptr) const override;
 
-                TypeDenoterPtr sub_type_denoter_;
-                std::vector<ArrayDAzensionPtr> array_dAzs_;
-            };
+        unsigned int NumDimensions() const override;
+        AST* SymbolRef() const override;
 
-            struct FunctionTypeDenoter : public TypeDenoter
-            {
-                static const Types class_type_ = Types::Function;
+        bool EqualsDimensions(const ArrayTypeDenoter& rhs_a) const;
 
-                FunctionTypeDenoter() = default;
-                FunctionTypeDenoter(FunctionDecl* func_decl_ref_a);
-                FunctionTypeDenoter(
-                        const std::string& ident_a,
-                        const std::vector<FunctionDecl*>& func_decl_refs_a);
+        TypeDenoterPtr AsArray(const std::vector<ArrayDimensionPtr>&
+                                       sub_array_dims_a) override;
 
-                Types Type() const override;
-                std::string ToString() const override;
-                TypeDenoterPtr Copy() const override;
+        TypeDenoter* FetchSubTypeDenoter() const override;
+        void InsertSubArray(const ArrayTypeDenoter& sub_array_type_denoter_a);
 
-                bool Equals(const TypeDenoter& rhs_a,
-                            const Flags& compare_flags_a = 0) const override;
-                
-                bool IsCastableTo(const TypeDenoter& targetType) const override;
-                std::string Ident() const override;
+        std::vector<int> GetDimensionSizes() const;
 
-                std::string ident_;
-                std::vector<FunctionDecl*> func_decl_refs_;
-            };
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+        int NumArrayElements() const;
+
+        TypeDenoterPtr sub_type_denoter_;
+        std::vector<ArrayDimensionPtr> array_dims_;
+    };
+
+    struct FunctionTypeDenoter : public TypeDenoter
+    {
+        static const Types class_type_ = Types::Function;
+
+        FunctionTypeDenoter() = default;
+        FunctionTypeDenoter(FunctionDecl* func_decl_ref_a);
+        FunctionTypeDenoter(const std::string& ident_a,
+                            const std::vector<FunctionDecl*>& func_decl_refs_a);
+
+        Types Type() const override;
+        std::string ToString() const override;
+        TypeDenoterPtr Copy() const override;
+
+        bool Equals(const TypeDenoter& rhs_a,
+                    const Flags& compare_flags_a = 0) const override;
+
+        bool IsCastableTo(const TypeDenoter& targetType) const override;
+        std::string Ident() const override;
+
+        std::string ident_;
+        std::vector<FunctionDecl*> func_decl_refs_;
+    };
+} // namespace OL
+#endif

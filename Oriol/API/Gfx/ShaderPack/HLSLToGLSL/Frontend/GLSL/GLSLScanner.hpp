@@ -1,22 +1,21 @@
-// Copyright (c) 2025 Case Technologies\
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_GLSLSCANNER_HPP
+#define OL_GLSLSCANNER_HPP
+
 #include "../SLScanner.hpp"
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class GLSLScanner : public SLScanner
     {
-        namespace ShaderPack
-        {
-            class GLSLScanner : public SLScanner
-            {
-            public:
-                GLSLScanner(Log* log_a = nullptr);
+    public:
+        GLSLScanner(Log* log_a = nullptr);
 
-            private:
-                TokenPtr ScanIdentifierOrKeyword(std::string&& spell_a) override;
-            };
-        } // namespace Xsc
-    } // namespace Aid
-} // namespace CE_Kernel
+    private:
+        TokenPtr ScanIdentifierOrKeyword(std::string&& spell_a) override;
+    };
+} // namespace OL
+
+#endif

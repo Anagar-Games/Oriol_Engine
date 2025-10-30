@@ -1,6 +1,9 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_SOURCECODE_HPP
+#define OL_SOURCECODE_HPP
+
 #include "AST/SourceArea.hpp"
 
 #include <istream>
@@ -8,55 +11,49 @@
 #include <string>
 #include <vector>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    class SourceCode
     {
-        namespace ShaderPack
+    public:
+        SourceCode(const std::shared_ptr<std::istream>& stream_a);
+
+        bool IsValid() const;
+        char Next();
+        bool FetchLineMarker(const SourceArea& area_a,
+                             std::string& line_a,
+                             std::string& marker_a);
+
+        void NextSourceOrigin(const std::string& filename_a, int line_offset_a);
+
+        inline void Ignore()
         {
-            class SourceCode
-            {
-            public:
-                SourceCode(const std::shared_ptr<std::istream>& stream_a);
+            Next();
+        }
 
-                bool IsValid() const;
-                char Next();
-                bool FetchLineMarker(const SourceArea& area_a,
-                                     std::string& line_a,
-                                     std::string& marker_a);
-             
-                void NextSourceOrigin(const std::string& filename_a,
-                                      int line_offset_a);
+        inline const SourcePosition& Pos() const
+        {
+            return pos_;
+        }
 
-                inline void Ignore()
-                {
-                    Next();
-                }
+        inline const std::string& Line() const
+        {
+            return current_line_;
+        }
 
-                inline const SourcePosition& Pos() const
-                {
-                    return pos_;
-                }
+        std::string Filename() const;
 
-                inline const std::string& Line() const
-                {
-                    return current_line_;
-                }
+    protected:
+        SourceCode() = default;
 
-                std::string Filename() const;
+        std::string GetLine(std::size_t line_index_a) const;
 
-            protected:
-                SourceCode() = default;
+        std::shared_ptr<std::istream> stream_;
+        std::string current_line_;
+        std::vector<std::string> lines_;
+        SourcePosition pos_;
+    };
 
-                std::string GetLine(std::size_t line_index_a) const;
-
-                std::shared_ptr<std::istream> stream_;
-                std::string current_line_;
-                std::vector<std::string> lines_;
-                SourcePosition pos_;
-            };
-
-            using SourceCodePtr = std::shared_ptr<SourceCode>;
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+    using SourceCodePtr = std::shared_ptr<SourceCode>;
+} // namespace OL
+#endif

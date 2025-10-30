@@ -1,71 +1,69 @@
-// Copyright (c) 2025 Case Technologies
+// Copyright (c) 2025 Anagar Games
+// MIT License
 
-#pragma once
+#ifndef OL_CISTRING_HPP
+#define OL_CISTRING_HPP
+
 #include <cctype>
 #include <string>
 
-namespace CE_Kernel
+namespace OL
 {
-    namespace Aid
+    template <typename T>
+    struct CiCharTraits : public std::char_traits<T>
     {
-        namespace ShaderPack
+        static bool Eq(T c1_a, T c2_a)
         {
-            template <typename T>
-            struct CiCharTraits : public std::char_traits<T>
+            return (std::toupper(c1_a) == std::toupper(c2_a));
+        }
+
+        static bool Ne(T c1_a, T c2_a)
+        {
+            return (std::toupper(c1_a) != std::toupper(c2_a));
+        }
+
+        static bool Lt(T c1_a, T c2_a)
+        {
+            return (std::toupper(c1_a) < std::toupper(c2_a));
+        }
+
+        static int Compare(const T* s1_a, const T* s2_a, size_t n_a)
+        {
+            while (n_a-- != 0)
             {
-                static bool Eq(T c1_a, T c2_a)
-                {
-                    return (std::toupper(c1_a) == std::toupper(c2_a));
-                }
-
-                static bool Ne(T c1_a, T c2_a)
-                {
-                    return (std::toupper(c1_a) != std::toupper(c2_a));
-                }
-
-                static bool Lt(T c1_a, T c2_a)
-                {
-                    return (std::toupper(c1_a) < std::toupper(c2_a));
-                }
-
-                static int Compare(const T* s1_a, const T* s2_a, size_t n_a)
-                {
-                    while (n_a-- != 0)
-                    {
-                        if (std::toupper(*s1_a) < std::toupper(*s2_a))
-                            return -1;
-                        if (std::toupper(*s1_a) > std::toupper(*s2_a))
-                            return 1;
-                        ++s1_a;
-                        ++s2_a;
-                    }
-                    return 0;
-                }
-
-                static const T* Find(const T* s_a, int n_a, T a_a)
-                {
-                    const auto ua_ = std::toupper(a_a);
-                    while (n_a-- > 0)
-                    {
-                        if (std::toupper(*s_a) == ua_)
-                            return s_a;
-                        s_a++;
-                    }
-                    return nullptr;
-                }
-            };
-
-            using CiString = std::basic_string<char, CiCharTraits<char>>;
-
-            inline CiString ToCiString(const std::string& s_a)
-            {
-                return CiString(s_a.begin(), s_a.end());
+                if (std::toupper(*s1_a) < std::toupper(*s2_a))
+                    return -1;
+                if (std::toupper(*s1_a) > std::toupper(*s2_a))
+                    return 1;
+                ++s1_a;
+                ++s2_a;
             }
+            return 0;
+        }
 
-            inline std::string ToString(const CiString& s_a)
+        static const T* Find(const T* s_a, int n_a, T a_a)
+        {
+            const auto ua_ = std::toupper(a_a);
+            while (n_a-- > 0)
             {
-                return std::string(s_a.begin(), s_a.end());
+                if (std::toupper(*s_a) == ua_)
+                    return s_a;
+                s_a++;
             }
-        } // namespace ShaderPack
-    } // namespace Aid
-} // namespace CE_Kernel
+            return nullptr;
+        }
+    };
+
+    using CiString = std::basic_string<char, CiCharTraits<char>>;
+
+    inline CiString ToCiString(const std::string& s_a)
+    {
+        return CiString(s_a.begin(), s_a.end());
+    }
+
+    inline std::string ToString(const CiString& s_a)
+    {
+        return std::string(s_a.begin(), s_a.end());
+    }
+} // namespace OL
+#endif

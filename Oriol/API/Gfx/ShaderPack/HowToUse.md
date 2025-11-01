@@ -23,7 +23,7 @@ C++ cross-platform shader packer.
 #### cpp
 ```cpp
 #include <API/API.hpp>
-#include <API/GFX/ShaderPack/ShaderPack.hpp>
+#include <API/Gfx/ShaderPack/ShaderPack.hpp>
 
 using namespace OL;
 
